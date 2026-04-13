@@ -15,9 +15,10 @@
 </head>
 
 <body class="py-5 md:py-0">
+    @include('layouts.topbar')
     <div class="flex overflow-hidden">
 
-        @include('layouts.navbar')
+        @include('layouts.sidebar')
 
         <div class="content">
             @yield('content')
