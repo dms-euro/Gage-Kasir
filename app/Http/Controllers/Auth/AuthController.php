@@ -42,11 +42,11 @@ class AuthController extends Controller
     /**
      * Remove the specified resource from storage.
      */
-    public function logout(string $id)
+    public function logout(Request $request)
     {
         Auth::logout();
-        request()->session()->invalidate();
-        request()->session()->regenerateToken();
+        $request->session()->invalidate();
+        $request->session()->regenerateToken();
         return redirect()->route('loginShow')->with('success', 'Logout berhasil.');
     }
 
@@ -56,7 +56,7 @@ class AuthController extends Controller
      */
     public function registerShow()
     {
-        //
+        return view('auth.register');
     }
 
     /**
@@ -75,7 +75,7 @@ class AuthController extends Controller
 
         User::create($validate);
 
-        return redirect()->route('login')->with('success', 'Registrasi berhasil. Silakan login.');
+        return redirect()->route('loginShow')->with('success', 'Registrasi berhasil. Silakan login.');
     }
 
     /**
