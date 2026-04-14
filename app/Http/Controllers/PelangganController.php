@@ -10,17 +10,26 @@ class PelangganController extends Controller
     /**
      * Display a listing of the resource.
      */
-    public function index()
+    public function index(Request $request)
     {
-        $pelanggans = Pelanggan::latest()->paginate(10);
-        $last = Pelanggan::orderBy('id', 'desc')->first();
+        $pelanggans = Pelanggan::query()
+            ->when($request->broker, function ($q) use ($request) {
+                $q->broker($request->broker);
+            })
+            ->when($request->search, function ($q) use ($request) {
+                $q->where(function ($sub) use ($request) {
+                    $sub->where('nama', 'like', "%{$request->search}%")
+                        ->orWhere('cv', 'like', "%{$request->search}%")
+                        ->orWhere('no_hp', 'like', "%{$request->search}%")
+                        ->orWhere('id_pelanggan', 'like', "%{$request->search}%");
+                });
+            })
+            ->latest()
+            ->paginate(10)
+            ->withQueryString();
 
-        if (!$last) {
-            $nextNumber = 1;
-        } else {
-            $number = (int) str_replace('PLG-', '', $last->id_pelanggan);
-            $nextNumber = $number + 1;
-        }
+        $lastId = Pelanggan::max('id');
+        $nextNumber = $lastId ? $lastId + 1 : 1;
 
         $previewId = 'PLG-' . str_pad($nextNumber, 4, '0', STR_PAD_LEFT);
 
@@ -58,7 +67,7 @@ class PelangganController extends Controller
             'status' => 1
         ]);
 
-        return back()->with('success', 'Pelanggan berhasil ditambahkan');
+        return redirect()->route('pelanggan.index', ['broker' => $request->broker])->with('success', 'Pelanggan berhasil ditambahkan');
     }
 
     /**

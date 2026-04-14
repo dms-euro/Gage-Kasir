@@ -3,6 +3,7 @@
 use App\Http\Controllers\Auth\AuthController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\PelangganController;
+use App\Http\Controllers\ProduksiController;
 use Illuminate\Support\Facades\Route;
 
 Route::middleware('guest')->group(function () {
@@ -18,5 +19,9 @@ Route::middleware('auth')->group(function () {
     Route::post('/pelanggan', [PelangganController::class, 'store'])->name('pelanggan.store');
     Route::put('/pelanggan/{id}', [PelangganController::class, 'update'])->name('pelanggan.update');
     Route::delete('/pelanggan/{id}', [PelangganController::class, 'destroy'])->name('pelanggan.destroy');
+    Route::get('/produksi/kategori', [ProduksiController::class, 'kategoriIndex'])->name('kategori.index');
+    Route::post('/produksi/kategori', [ProduksiController::class, 'kategoriStore'])->name('kategori.store');
+    Route::put('/produksi/kategori/{id}', [ProduksiController::class, 'kategoriUpdate'])->name('kategori.update');
+    Route::delete('/produksi/kategori/{id}', [ProduksiController::class, 'kategoriDestroy'])->name('kategori.destroy');
     Route::post('/logout', [AuthController::class, 'logout'])->name('logout');
 });

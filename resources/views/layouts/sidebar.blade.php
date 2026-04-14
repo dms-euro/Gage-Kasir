@@ -1,88 +1,41 @@
 <nav class="side-nav">
     <ul>
         <li>
-            <a href="javascript:;.html" class="side-menu side-menu--active">
+            <a href="{{ route('dashboard.index') }}" class="side-menu side-menu--active">
                 <div class="side-menu__icon"> <i data-lucide="home"></i> </div>
                 <div class="side-menu__title">
                     Dashboard
-                    <div class="side-menu__sub-icon transform rotate-180"> <i data-lucide="chevron-down"></i> </div>
                 </div>
             </a>
-            <ul class="side-menu__sub-open">
-                <li>
-                    <a href="side-menu-light-dashboard-overview-1.html" class="side-menu">
-                        <div class="side-menu__icon"> <i data-lucide="activity"></i> </div>
-                        <div class="side-menu__title"> Overview 1 </div>
-                    </a>
-                </li>
-                <li>
-                    <a href="side-menu-light-dashboard-overview-3.html" class="side-menu">
-                        <div class="side-menu__icon"> <i data-lucide="activity"></i> </div>
-                        <div class="side-menu__title"> Overview 3 </div>
-                    </a>
-                </li>
-                <li>
-                    <a href="index.html" class="side-menu side-menu--active">
-                        <div class="side-menu__icon"> <i data-lucide="activity"></i> </div>
-                        <div class="side-menu__title"> Overview 4 </div>
-                    </a>
-                </li>
-            </ul>
         </li>
         <li>
             <a href="javascript:;" class="side-menu">
-                <div class="side-menu__icon"> <i data-lucide="users"></i> </div>
+                <div class="side-menu__icon"><i data-lucide="users"></i></div>
                 <div class="side-menu__title">
                     Pelanggan
-                    <div class="side-menu__sub-icon "> <i data-lucide="chevron-down"></i> </div>
+                    <div class="side-menu__sub-icon"><i data-lucide="chevron-down"></i></div>
                 </div>
             </a>
-            <ul class="">
+
+            <ul>
                 <li>
-                    <a href="{{ route('pelanggan.index') }}" class="side-menu">
-                        <div class="side-menu__icon"> <i data-lucide="activity"></i> </div>
-                        <div class="side-menu__title"> Broker </div>
+                    <a href="{{ route('pelanggan.index', ['broker' => 'broker']) }}" class="side-menu">
+                        <div class="side-menu__icon"><i data-lucide="activity"></i></div>
+                        <div class="side-menu__title">Broker</div>
                     </a>
                 </li>
+
                 <li>
-                    <a href="side-menu-light-users-layout-2.html" class="side-menu">
-                        <div class="side-menu__icon"> <i data-lucide="activity"></i> </div>
-                        <div class="side-menu__title"> Non Broker </div>
+                    <a href="{{ route('pelanggan.index', ['broker' => 'non-broker']) }}" class="side-menu">
+                        <div class="side-menu__icon"><i data-lucide="activity"></i></div>
+                        <div class="side-menu__title">Non Broker</div>
                     </a>
                 </li>
+
                 <li>
-                    <a href="side-menu-light-users-layout-3.html" class="side-menu">
-                        <div class="side-menu__icon"> <i data-lucide="activity"></i> </div>
-                        <div class="side-menu__title"> Kena Pajak </div>
-                    </a>
-                </li>
-            </ul>
-        </li>
-        <li>
-            <a href="javascript:;" class="side-menu">
-                <div class="side-menu__icon"> <i data-lucide="box"></i> </div>
-                <div class="side-menu__title">
-                    Menu Layout
-                    <div class="side-menu__sub-icon "> <i data-lucide="chevron-down"></i> </div>
-                </div>
-            </a>
-            <ul class="">
-                <li>
-                    <a href="side-menu-light-dashboard-overview-1.html" class="side-menu">
-                        <div class="side-menu__icon"> <i data-lucide="activity"></i> </div>
-                        <div class="side-menu__title"> Side Menu </div>
-                    </a>
-                </li>
-                <li>
-                    <a href="simple-menu-light-dashboard-overview-1.html" class="side-menu">
-                        <div class="side-menu__icon"> <i data-lucide="activity"></i> </div>
-                        <div class="side-menu__title"> Simple Menu </div>
-                    </a>
-                </li>
-                <li>
-                    <a href="top-menu-light-dashboard-overview-1.html" class="side-menu">
-                        <div class="side-menu__icon"> <i data-lucide="activity"></i> </div>
-                        <div class="side-menu__title"> Top Menu </div>
+                    <a href="{{ route('pelanggan.index', ['broker' => 'kenapajak']) }}" class="side-menu">
+                        <div class="side-menu__icon"><i data-lucide="activity"></i></div>
+                        <div class="side-menu__title">Kena Pajak</div>
                     </a>
                 </li>
             </ul>
@@ -91,15 +44,15 @@
             <a href="javascript:;" class="side-menu">
                 <div class="side-menu__icon"> <i data-lucide="shopping-bag"></i> </div>
                 <div class="side-menu__title">
-                    E-Commerce
+                    Produksi
                     <div class="side-menu__sub-icon "> <i data-lucide="chevron-down"></i> </div>
                 </div>
             </a>
             <ul class="">
                 <li>
-                    <a href="side-menu-light-categories.html" class="side-menu">
+                    <a href="{{ route('kategori.index') }}" class="side-menu">
                         <div class="side-menu__icon"> <i data-lucide="activity"></i> </div>
-                        <div class="side-menu__title"> Categories </div>
+                        <div class="side-menu__title"> Kategori </div>
                     </a>
                 </li>
                 <li>

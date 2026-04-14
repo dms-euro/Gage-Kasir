@@ -16,6 +16,13 @@ class Pelanggan extends Model
         'status',
         'broker',
     ];
+
+    public function scopeBroker($query, $broker)
+    {
+        return $query->where('broker', $broker);
+    }
+
+
     protected static function boot()
     {
         parent::boot();

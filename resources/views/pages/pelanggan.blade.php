@@ -10,11 +10,19 @@
                 <button class="btn btn-primary shadow-md mr-2" data-tw-toggle="modal" data-tw-target="#modal-pelanggan">
                     <i data-lucide="plus" class="w-4 h-4 mr-1"></i> Tambah Pelanggan Baru
                 </button>
-                <div class="hidden md:block mx-auto text-slate-500">Showing 1 to 10 of 150 entries</div>
+                <div class="hidden md:block mx-auto text-slate-500">
+                    Menampilkan {{ $pelanggans->count() }} dari {{ $pelanggans->total() }} data pelanggan
+                </div>
                 <div class="w-full sm:w-auto mt-3 sm:mt-0 sm:ml-auto md:ml-0">
                     <div class="w-56 relative text-slate-500">
-                        <input type="text" class="form-control w-56 box pr-10" placeholder="Search...">
+
+                        <form method="GET">
+                            <input type="text" name="search" value="{{ request('search') }}"
+                                class="form-control w-56 box pr-10" placeholder="Search..." />
+                        </form>
+
                         <i class="w-4 h-4 absolute my-auto inset-y-0 mr-3 right-0" data-lucide="search"></i>
+
                     </div>
                 </div>
             </div>
@@ -35,14 +43,14 @@
                         </thead>
                         <tbody>
                             @foreach ($pelanggans as $pelanggan)
-                                <tr>
+                                <tr class="pelanggan-row">
                                     <td>{{ $loop->iteration }}</td>
-                                    <td>{{ $pelanggan->id_pelanggan }}</td>
-                                    <td>{{ $pelanggan->nama }}</td>
-                                    <td>{{ $pelanggan->cv }}</td>
-                                    <td>{{ $pelanggan->alamat }}</td>
-                                    <td>{{ $pelanggan->no_hp }}</td>
-                                    <td>{{ $pelanggan->broker }}</td>
+                                    <td class="searchable">{{ $pelanggan->id_pelanggan }}</td>
+                                    <td class="searchable">{{ $pelanggan->nama }}</td>
+                                    <td class="searchable">{{ $pelanggan->cv }}</td>
+                                    <td class="searchable">{{ $pelanggan->alamat }}</td>
+                                    <td class="searchable">{{ $pelanggan->no_hp }}</td>
+                                    <td class="searchable">{{ $pelanggan->broker }}</td>
                                     <td>
                                         <div class="flex items-center">
                                             <button class="btn btn-primary shadow-md mr-2" data-tw-toggle="modal"
@@ -57,7 +65,8 @@
                                                 )">
                                                 <i data-lucide="edit" class="w-4 h-4"></i>
                                             </button>
-                                            <form action="{{ route('pelanggan.destroy', $pelanggan->id) }}" method="POST" onsubmit="return confirm('Are you sure?')">
+                                            <form action="{{ route('pelanggan.destroy', $pelanggan->id) }}" method="POST"
+                                                onsubmit="return confirm('Are you sure?')">
                                                 @csrf
                                                 @method('DELETE')
                                                 <button type="submit" class="btn btn-sm btn-danger shadow-md mr-2">
@@ -72,37 +81,10 @@
                     </table>
                 </div>
             </div>
-            <div class="intro-y col-span-12 flex flex-wrap sm:flex-row sm:flex-nowrap items-center">
+            <div class="intro-y col-span-12 flex flex-wrap sm:flex-row sm:flex-nowrap items-center mt-5">
                 <nav class="w-full sm:w-auto sm:mr-auto">
-                    <ul class="pagination">
-                        <li class="page-item">
-                            <a class="page-link" href="#"> <i class="w-4 h-4" data-lucide="chevrons-left"></i>
-                            </a>
-                        </li>
-                        <li class="page-item">
-                            <a class="page-link" href="#"> <i class="w-4 h-4" data-lucide="chevron-left"></i> </a>
-                        </li>
-                        <li class="page-item"> <a class="page-link" href="#">...</a> </li>
-                        <li class="page-item"> <a class="page-link" href="#">1</a> </li>
-                        <li class="page-item active"> <a class="page-link" href="#">2</a> </li>
-                        <li class="page-item"> <a class="page-link" href="#">3</a> </li>
-                        <li class="page-item"> <a class="page-link" href="#">...</a> </li>
-                        <li class="page-item">
-                            <a class="page-link" href="#"> <i class="w-4 h-4" data-lucide="chevron-right"></i>
-                            </a>
-                        </li>
-                        <li class="page-item">
-                            <a class="page-link" href="#"> <i class="w-4 h-4" data-lucide="chevrons-right"></i>
-                            </a>
-                        </li>
-                    </ul>
+                    {{ $pelanggans->links() }}
                 </nav>
-                <select class="w-20 form-select box mt-3 sm:mt-0">
-                    <option>10</option>
-                    <option>25</option>
-                    <option>35</option>
-                    <option>50</option>
-                </select>
             </div>
         </div>
     </div>
