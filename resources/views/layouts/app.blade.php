@@ -12,6 +12,7 @@
     <meta name="author" content="LEFT4CODE">
     <title>@yield('title', 'Sistem')</title>
     <link rel="stylesheet" href="{{ asset('templates/Compiled/dist/css/app.css') }}" />
+    {{-- <link href="https://cdnjs.cloudflare.com/ajax/libs/flowbite/2.2.0/flowbite.min.css" rel="stylesheet" /> --}}
 </head>
 
 <body class="py-5 md:py-0">

@@ -1,0 +1,264 @@
+@extends('layouts.app')
+@section('title', 'Pelanggan')
+@section('content')
+    <div>
+        <h2 class="intro-y text-lg font-medium mt-10">
+            Daftar Pelanggan
+        </h2>
+        <div class="grid grid-cols-12 gap-6 mt-5">
+            <div class="intro-y col-span-12 flex flex-wrap sm:flex-nowrap items-center mt-2">
+                <button class="btn btn-primary shadow-md mr-2" data-tw-toggle="modal" data-tw-target="#modal-pelanggan">
+                    <i data-lucide="plus" class="w-4 h-4 mr-1"></i> Tambah Pelanggan Baru
+                </button>
+                <div class="hidden md:block mx-auto text-slate-500">Showing 1 to 10 of 150 entries</div>
+                <div class="w-full sm:w-auto mt-3 sm:mt-0 sm:ml-auto md:ml-0">
+                    <div class="w-56 relative text-slate-500">
+                        <input type="text" class="form-control w-56 box pr-10" placeholder="Search...">
+                        <i class="w-4 h-4 absolute my-auto inset-y-0 mr-3 right-0" data-lucide="search"></i>
+                    </div>
+                </div>
+            </div>
+            <div class="intro-y col-span-12 overflow-auto">
+                <div class="overflow-x-auto bg-white rounded-lg shadow">
+                    <table class="table table-striped">
+                        <thead>
+                            <tr>
+                                <th class="whitespace-nowrap">#</th>
+                                <th class="whitespace-nowrap">ID Pelanggan</th>
+                                <th class="whitespace-nowrap">Nama</th>
+                                <th class="whitespace-nowrap">CV</th>
+                                <th class="whitespace-nowrap">Alamat</th>
+                                <th class="whitespace-nowrap">No. HP</th>
+                                <th class="whitespace-nowrap">Broker</th>
+                                <th class="whitespace-nowrap">Aksi</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach ($pelanggans as $pelanggan)
+                                <tr>
+                                    <td>{{ $loop->iteration }}</td>
+                                    <td>{{ $pelanggan->id_pelanggan }}</td>
+                                    <td>{{ $pelanggan->nama }}</td>
+                                    <td>{{ $pelanggan->cv }}</td>
+                                    <td>{{ $pelanggan->alamat }}</td>
+                                    <td>{{ $pelanggan->no_hp }}</td>
+                                    <td>{{ $pelanggan->broker }}</td>
+                                    <td>
+                                        <div class="flex items-center">
+                                            <button class="btn btn-primary shadow-md mr-2" data-tw-toggle="modal"
+                                                data-tw-target="#modal-edit-pelanggan"
+                                                onclick="openEdit(
+                                                    '{{ $pelanggan->id }}',
+                                                    '{{ $pelanggan->nama }}',
+                                                    '{{ $pelanggan->cv }}',
+                                                    `{{ $pelanggan->alamat }}`,
+                                                    '{{ $pelanggan->no_hp }}',
+                                                    '{{ $pelanggan->broker }}'
+                                                )">
+                                                <i data-lucide="edit" class="w-4 h-4"></i>
+                                            </button>
+                                            <form action="{{ route('pelanggan.destroy', $pelanggan->id) }}" method="POST" onsubmit="return confirm('Are you sure?')">
+                                                @csrf
+                                                @method('DELETE')
+                                                <button type="submit" class="btn btn-sm btn-danger shadow-md mr-2">
+                                                    <i data-lucide="trash-2" class="w-4 h-4"></i>
+                                                </button>
+                                            </form>
+                                        </div>
+                                    </td>
+                                </tr>
+                            @endforeach
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+            <div class="intro-y col-span-12 flex flex-wrap sm:flex-row sm:flex-nowrap items-center">
+                <nav class="w-full sm:w-auto sm:mr-auto">
+                    <ul class="pagination">
+                        <li class="page-item">
+                            <a class="page-link" href="#"> <i class="w-4 h-4" data-lucide="chevrons-left"></i>
+                            </a>
+                        </li>
+                        <li class="page-item">
+                            <a class="page-link" href="#"> <i class="w-4 h-4" data-lucide="chevron-left"></i> </a>
+                        </li>
+                        <li class="page-item"> <a class="page-link" href="#">...</a> </li>
+                        <li class="page-item"> <a class="page-link" href="#">1</a> </li>
+                        <li class="page-item active"> <a class="page-link" href="#">2</a> </li>
+                        <li class="page-item"> <a class="page-link" href="#">3</a> </li>
+                        <li class="page-item"> <a class="page-link" href="#">...</a> </li>
+                        <li class="page-item">
+                            <a class="page-link" href="#"> <i class="w-4 h-4" data-lucide="chevron-right"></i>
+                            </a>
+                        </li>
+                        <li class="page-item">
+                            <a class="page-link" href="#"> <i class="w-4 h-4" data-lucide="chevrons-right"></i>
+                            </a>
+                        </li>
+                    </ul>
+                </nav>
+                <select class="w-20 form-select box mt-3 sm:mt-0">
+                    <option>10</option>
+                    <option>25</option>
+                    <option>35</option>
+                    <option>50</option>
+                </select>
+            </div>
+        </div>
+    </div>
+
+    {{-- Modal Tambah Pelanggan --}}
+    <div id="modal-pelanggan" class="modal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+
+                <!-- HEADER -->
+                <div class="modal-header">
+                    <h2 class="font-medium text-base mr-auto">
+                        Tambah Pelanggan
+                    </h2>
+                </div>
+
+                <!-- BODY -->
+                <form action="{{ route('pelanggan.store') }}" method="POST">
+                    @csrf
+
+                    <div class="modal-body grid grid-cols-12 gap-4 gap-y-3">
+
+                        <!-- ID PELANGGAN (AUTO, READ ONLY) -->
+                        <div class="col-span-12">
+                            <label>ID Pelanggan</label>
+                            <input type="text" class="form-control bg-slate-100" value="{{ $previewId }}" readonly>
+                        </div>
+
+                        <!-- NAMA -->
+                        <div class="col-span-12">
+                            <label>Nama</label>
+                            <input type="text" name="nama" class="form-control" placeholder="Nama pelanggan">
+                        </div>
+
+                        <!-- CV -->
+                        <div class="col-span-12">
+                            <label>CV / Perusahaan</label>
+                            <input type="text" name="cv" class="form-control" placeholder="Nama CV">
+                        </div>
+
+                        <!-- ALAMAT -->
+                        <div class="col-span-12">
+                            <label>Alamat</label>
+                            <textarea name="alamat" class="form-control" placeholder="Alamat lengkap"></textarea>
+                        </div>
+
+                        <!-- NO HP -->
+                        <div class="col-span-12 sm:col-span-6">
+                            <label>No HP</label>
+                            <input type="text" name="no_hp" class="form-control" placeholder="08xxxxxxxx">
+                        </div>
+
+                        <!-- BROKER -->
+                        <div class="col-span-12 sm:col-span-6">
+                            <label>Broker</label>
+                            <select name="broker" class="form-select">
+                                <option value="broker">Broker</option>
+                                <option value="non-broker">Non-Broker</option>
+                                <option value="kenapajak ">Kenapajak</option>
+                            </select>
+                        </div>
+
+                    </div>
+
+                    <!-- FOOTER -->
+                    <div class="modal-footer text-right">
+                        <button type="reset" class="btn btn-outline-secondary mr-1" data-tw-dismiss="modal">
+                            Batal
+                        </button>
+                        <button type="submit" class="btn btn-primary">
+                            Simpan
+                        </button>
+                    </div>
+
+                </form>
+
+            </div>
+        </div>
+    </div>
+
+    {{-- Modal Edit Pelanggan --}}
+    <div id="modal-edit-pelanggan" class="modal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+
+                <!-- HEADER -->
+                <div class="modal-header">
+                    <h2 class="font-medium text-base">Edit Pelanggan</h2>
+                </div>
+
+                <!-- FORM -->
+                <form id="form-edit" method="POST">
+                    @csrf
+                    @method('PUT')
+
+                    <div class="modal-body grid grid-cols-12 gap-4 gap-y-3">
+
+                        <div class="col-span-12">
+                            <label>Nama</label>
+                            <input type="text" name="nama" id="edit_nama" class="form-control">
+                        </div>
+
+                        <div class="col-span-12">
+                            <label>CV</label>
+                            <input type="text" name="cv" id="edit_cv" class="form-control">
+                        </div>
+
+                        <div class="col-span-12">
+                            <label>Alamat</label>
+                            <textarea name="alamat" id="edit_alamat" class="form-control"></textarea>
+                        </div>
+
+                        <div class="col-span-12 sm:col-span-6">
+                            <label>No HP</label>
+                            <input type="text" name="no_hp" id="edit_no_hp" class="form-control">
+                        </div>
+
+                        <div class="col-span-12 sm:col-span-6">
+                            <label>Broker</label>
+                            <select name="broker" id="edit_broker" class="form-select">
+                                <option value="broker">Broker</option>
+                                <option value="non-broker">Non-Broker</option>
+                                <option value="kenapajak">Kenapajak</option>
+                            </select>
+                        </div>
+
+                    </div>
+
+                    <!-- FOOTER -->
+                    <div class="modal-footer text-right">
+                        <button type="button" class="btn btn-outline-secondary" data-tw-dismiss="modal">
+                            Batal
+                        </button>
+
+                        <button type="submit" class="btn btn-primary">
+                            Update
+                        </button>
+                    </div>
+
+                </form>
+
+            </div>
+        </div>
+    </div>
+
+    @push('scripts')
+        <script>
+            function openEdit(id, nama, cv, alamat, no_hp, broker) {
+                document.getElementById('edit_nama').value = nama;
+                document.getElementById('edit_cv').value = cv;
+                document.getElementById('edit_alamat').value = alamat;
+                document.getElementById('edit_no_hp').value = no_hp;
+                document.getElementById('edit_broker').value = broker;
+
+                document.getElementById('form-edit').action = `/pelanggan/${id}`;
+            }
+        </script>
+    @endpush
+@endsection

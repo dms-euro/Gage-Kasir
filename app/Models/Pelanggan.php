@@ -22,12 +22,14 @@ class Pelanggan extends Model
 
         static::creating(function ($model) {
 
-            $last = self::orderBy('id', 'desc')->first();
+            $last = self::whereNotNull('id_pelanggan')
+                ->orderBy('id', 'desc')
+                ->first();
 
             if (!$last) {
                 $nextNumber = 1;
             } else {
-                $number = (int) substr($last->id_pelanggan, 4);
+                $number = (int) str_replace('PLG-', '', $last->id_pelanggan);
                 $nextNumber = $number + 1;
             }
 

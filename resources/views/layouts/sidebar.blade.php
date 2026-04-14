@@ -31,6 +31,35 @@
         </li>
         <li>
             <a href="javascript:;" class="side-menu">
+                <div class="side-menu__icon"> <i data-lucide="users"></i> </div>
+                <div class="side-menu__title">
+                    Pelanggan
+                    <div class="side-menu__sub-icon "> <i data-lucide="chevron-down"></i> </div>
+                </div>
+            </a>
+            <ul class="">
+                <li>
+                    <a href="{{ route('pelanggan.index') }}" class="side-menu">
+                        <div class="side-menu__icon"> <i data-lucide="activity"></i> </div>
+                        <div class="side-menu__title"> Broker </div>
+                    </a>
+                </li>
+                <li>
+                    <a href="side-menu-light-users-layout-2.html" class="side-menu">
+                        <div class="side-menu__icon"> <i data-lucide="activity"></i> </div>
+                        <div class="side-menu__title"> Non Broker </div>
+                    </a>
+                </li>
+                <li>
+                    <a href="side-menu-light-users-layout-3.html" class="side-menu">
+                        <div class="side-menu__icon"> <i data-lucide="activity"></i> </div>
+                        <div class="side-menu__title"> Kena Pajak </div>
+                    </a>
+                </li>
+            </ul>
+        </li>
+        <li>
+            <a href="javascript:;" class="side-menu">
                 <div class="side-menu__icon"> <i data-lucide="box"></i> </div>
                 <div class="side-menu__title">
                     Menu Layout
@@ -212,35 +241,6 @@
                     <a href="side-menu-light-crud-form.html" class="side-menu">
                         <div class="side-menu__icon"> <i data-lucide="activity"></i> </div>
                         <div class="side-menu__title"> Form </div>
-                    </a>
-                </li>
-            </ul>
-        </li>
-        <li>
-            <a href="javascript:;" class="side-menu">
-                <div class="side-menu__icon"> <i data-lucide="users"></i> </div>
-                <div class="side-menu__title">
-                    Users
-                    <div class="side-menu__sub-icon "> <i data-lucide="chevron-down"></i> </div>
-                </div>
-            </a>
-            <ul class="">
-                <li>
-                    <a href="side-menu-light-users-layout-1.html" class="side-menu">
-                        <div class="side-menu__icon"> <i data-lucide="activity"></i> </div>
-                        <div class="side-menu__title"> Layout 1 </div>
-                    </a>
-                </li>
-                <li>
-                    <a href="side-menu-light-users-layout-2.html" class="side-menu">
-                        <div class="side-menu__icon"> <i data-lucide="activity"></i> </div>
-                        <div class="side-menu__title"> Layout 2 </div>
-                    </a>
-                </li>
-                <li>
-                    <a href="side-menu-light-users-layout-3.html" class="side-menu">
-                        <div class="side-menu__icon"> <i data-lucide="activity"></i> </div>
-                        <div class="side-menu__title"> Layout 3 </div>
                     </a>
                 </li>
             </ul>

@@ -13,7 +13,18 @@ class PelangganController extends Controller
     public function index()
     {
         $pelanggans = Pelanggan::latest()->paginate(10);
-        return view('', compact('pelanggans'));
+        $last = Pelanggan::orderBy('id', 'desc')->first();
+
+        if (!$last) {
+            $nextNumber = 1;
+        } else {
+            $number = (int) str_replace('PLG-', '', $last->id_pelanggan);
+            $nextNumber = $number + 1;
+        }
+
+        $previewId = 'PLG-' . str_pad($nextNumber, 4, '0', STR_PAD_LEFT);
+
+        return view('pages.pelanggan', compact('pelanggans', 'previewId'));
     }
 
     /**
@@ -33,15 +44,16 @@ class PelangganController extends Controller
             'nama' => 'required',
             'cv' => 'required',
             'alamat' => 'required',
-            'cp' => 'required',
+            'no_hp' => 'required',
             'broker' => 'required',
         ]);
 
         Pelanggan::create([
+
             'nama' => $request->nama,
             'cv' => $request->cv,
             'alamat' => $request->alamat,
-            'cp' => $request->cp,
+            'no_hp' => $request->no_hp,
             'broker' => $request->broker,
             'status' => 1
         ]);
@@ -68,21 +80,23 @@ class PelangganController extends Controller
     /**
      * Update the specified resource in storage.
      */
-    public function update(Request $request, Pelanggan $pelanggan)
+    public function update(Request $request, string $id)
     {
         $request->validate([
             'nama' => 'required',
             'cv' => 'required',
             'alamat' => 'required',
-            'cp' => 'required',
+            'no_hp' => 'required',
             'broker' => 'required',
         ]);
+
+        $pelanggan = Pelanggan::findOrFail($id);
 
         $pelanggan->update([
             'nama' => $request->nama,
             'cv' => $request->cv,
             'alamat' => $request->alamat,
-            'cp' => $request->cp,
+            'no_hp' => $request->no_hp,
             'broker' => $request->broker,
         ]);
 
@@ -92,8 +106,10 @@ class PelangganController extends Controller
     /**
      * Remove the specified resource from storage.
      */
-    public function destroy(Pelanggan $pelanggan)
+    public function destroy(string $id)
     {
+        $pelanggan = Pelanggan::findOrFail($id);
+
         $pelanggan->update([
             'status' => 0
         ]);
