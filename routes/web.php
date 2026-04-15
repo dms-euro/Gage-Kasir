@@ -4,10 +4,11 @@ use App\Http\Controllers\Auth\AuthController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\PelangganController;
 use App\Http\Controllers\ProduksiController;
+use App\Http\Controllers\ProfilPerusahaanController;
 use Illuminate\Support\Facades\Route;
 
 Route::middleware('guest')->group(function () {
-    Route::get('/', [AuthController::class, 'loginShow'])->name('loginShow');
+    Route::get('/', [AuthController::class, 'loginShow'])->name('login');
     Route::post('/login', [AuthController::class, 'loginProses'])->name('loginProses');
     Route::get('/register', [AuthController::class, 'registerShow'])->name('registerShow');
     Route::post('/register', [AuthController::class, 'registerProses'])->name('registerProses');
@@ -23,5 +24,16 @@ Route::middleware('auth')->group(function () {
     Route::post('/produksi/kategori', [ProduksiController::class, 'kategoriStore'])->name('kategori.store');
     Route::put('/produksi/kategori/{id}', [ProduksiController::class, 'kategoriUpdate'])->name('kategori.update');
     Route::delete('/produksi/kategori/{id}', [ProduksiController::class, 'kategoriDestroy'])->name('kategori.destroy');
+    Route::get('/produksi', [ProduksiController::class, 'index'])->name('produksi.index');
+    Route::get('/produksi/create', [ProduksiController::class, 'create'])->name('produksi.create');
+    Route::post('/produksi', [ProduksiController::class, 'store'])->name('produksi.store');
+    Route::post('/produksi/finalisasi', [ProduksiController::class, 'finalisasi'])->name('produksi.finalisasi');
+    Route::get('/produksi/detail/{id}/edit', [ProduksiController::class, 'editDetail'])->name('produksi.detail.edit');
+    Route::put('/produksi/detail/{id}', [ProduksiController::class, 'updateDetail'])->name('produksi.detail.update');
+    Route::delete('/produksi/detail/{id}', [ProduksiController::class, 'destroyDetail'])->name('produksi.detail.destroy');
+    Route::get('/produksi/invoice/{id_produksi}', [ProduksiController::class, 'invoice'])->name('produksi.invoice');
+    Route::delete('/produksi/{id}', [ProduksiController::class, 'destroy'])->name('produksi.destroy');
+    Route::get('/profile-perusahaan', [ProfilPerusahaanController::class, 'index'])->name('profile-perusahaan.index');
+    Route::put('/profile-perusahaan', [ProfilPerusahaanController::class, 'update'])->name('profile-perusahaan.update');
     Route::post('/logout', [AuthController::class, 'logout'])->name('logout');
 });

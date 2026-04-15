@@ -2,8 +2,14 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\DetailPiutang;
+use App\Models\DetailProduksi;
 use App\Models\Kategori;
+use App\Models\Pelanggan;
+use App\Models\Piutang;
+use App\Models\Produksi;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 
 class ProduksiController extends Controller
 {
@@ -47,43 +53,258 @@ class ProduksiController extends Controller
         return back()->with('success', 'Kategori berhasil dihapus');
     }
 
-    /**
-     * Display a listing of the resource.
-     */
-    public function index()
+    public function index(Request $request)
     {
-        //
+        $query = Produksi::with(['pelanggan', 'detailProduksi'])
+            ->where('status', true)
+            ->latest('tanggal')
+            ->latest('id_produksi');
+
+        // Filter hari ini (default)
+        if (!$request->has('search')) {
+            $query->whereDate('tanggal', today());
+        }
+
+        // Search by nota
+        if ($request->filled('search')) {
+            $query->where('id_produksi', 'like', '%' . $request->search . '%');
+        }
+
+        $produksis = $query->paginate(15);
+
+        $pelanggans = Pelanggan::where('status', true)
+            ->orderBy('nama')
+            ->get();
+
+        return view('pages.produksi', compact('produksis', 'pelanggans'));
     }
 
-    /**
-     * Store a newly created resource in storage.
-     */
+    public function create(Request $request)
+    {
+        $request->validate([
+            'pelanggan_id' => 'required|exists:pelanggans,id'
+        ]);
+
+        $pelanggan = Pelanggan::findOrFail($request->pelanggan_id);
+
+        $produksi = new Produksi();
+        $id_produksi = $produksi->generateIdProduksi();
+
+        // AMBIL ITEM YANG SUDAH DITAMBAHKAN
+        $detailItems = DetailProduksi::where('id_produksi', $id_produksi)
+            ->with('kategori')
+            ->get();
+
+        $subtotal = $detailItems->sum('subtotal');
+        $kategoris = Kategori::orderBy('nama_kategori')->get();
+
+        return view('pages.order', compact(
+            'pelanggan',
+            'id_produksi',
+            'detailItems',
+            'kategoris',
+            'subtotal'
+        ));
+    }
+
     public function store(Request $request)
     {
-        //
+        $request->validate([
+            'id_produksi' => 'required|string|max:50',
+            'pelanggan_id' => 'required|exists:pelanggans,id', // TAMBAHKAN VALIDASI
+            'kategori_id' => 'required|exists:kategoris,id',
+            'deskripsi' => 'required|string|max:255',
+            'bahan' => 'nullable|string|max:100',
+            'panjang' => 'required|numeric|min:0',
+            'lebar' => 'required|numeric|min:0',
+            'jumlah' => 'required|integer|min:1',
+            'harga' => 'required|numeric|min:0',
+        ]);
+
+        try {
+            DetailProduksi::create([
+                'id_produksi' => $request->id_produksi,
+                'kategori_id' => $request->kategori_id,
+                'deskripsi' => $request->deskripsi,
+                'bahan' => $request->bahan,
+                'panjang' => $request->panjang,
+                'lebar' => $request->lebar,
+                'jumlah' => $request->jumlah,
+                'harga' => $request->harga,
+            ]);
+
+            // AMBIL DARI REQUEST, BUKAN SESSION
+            $pelangganId = $request->pelanggan_id;
+
+            return redirect()
+                ->route('produksi.create', ['pelanggan_id' => $pelangganId])
+                ->with('success', 'Item berhasil ditambahkan.');
+        } catch (\Exception $e) {
+            return back()
+                ->withInput()
+                ->with('error', 'Gagal menambahkan item: ' . $e->getMessage());
+        }
     }
 
     /**
-     * Display the specified resource.
+     * Hapus detail item
      */
-    public function show(string $id)
+    public function destroyDetail($id)
     {
-        //
+        try {
+            $detail = DetailProduksi::findOrFail($id);
+            $pelanggan_id = request('pelanggan_id');
+
+            $detail->delete();
+
+            return redirect()
+                ->route('produksi.create', ['pelanggan_id' => $pelanggan_id])
+                ->with('success', 'Item berhasil dihapus.');
+        } catch (\Exception $e) {
+            return back()->with('error', 'Gagal menghapus item: ' . $e->getMessage());
+        }
     }
 
     /**
-     * Update the specified resource in storage.
+     * API untuk edit item
      */
-    public function update(Request $request, string $id)
+    public function editDetail($id)
     {
-        //
+        $detail = DetailProduksi::with('kategori')->findOrFail($id);
+
+        return response()->json([
+            'success' => true,
+            'data' => [
+                'id' => $detail->id,
+                'kategori_id' => $detail->kategori_id,
+                'deskripsi' => $detail->deskripsi,
+                'bahan' => $detail->bahan,
+                'panjang' => $detail->panjang,
+                'lebar' => $detail->lebar,
+                'jumlah' => $detail->jumlah,
+                'harga' => $detail->harga,
+            ]
+        ]);
     }
 
     /**
-     * Remove the specified resource from storage.
+     * Update detail item
      */
-    public function destroy(string $id)
+    public function updateDetail(Request $request, $id)
     {
-        //
+        $request->validate([
+            'kategori_id' => 'required|exists:kategoris,id',
+            'deskripsi' => 'required|string|max:255',
+            'bahan' => 'nullable|string|max:100',
+            'panjang' => 'required|numeric|min:0',
+            'lebar' => 'required|numeric|min:0',
+            'jumlah' => 'required|integer|min:1',
+            'harga' => 'required|numeric|min:0',
+            'pelanggan_id' => 'required|exists:pelanggans,id',
+        ]);
+
+        try {
+            $detail = DetailProduksi::findOrFail($id);
+
+            $detail->update([
+                'kategori_id' => $request->kategori_id,
+                'deskripsi' => $request->deskripsi,
+                'bahan' => $request->bahan,
+                'panjang' => $request->panjang,
+                'lebar' => $request->lebar,
+                'jumlah' => $request->jumlah,
+                'harga' => $request->harga,
+            ]);
+
+            return redirect()
+                ->route('produksi.create', ['pelanggan_id' => $request->pelanggan_id])
+                ->with('success', 'Item berhasil diperbarui.');
+        } catch (\Exception $e) {
+            return back()->with('error', 'Gagal memperbarui item: ' . $e->getMessage());
+        }
+    }
+
+    /**
+     * Finalisasi order
+     */
+    public function finalisasi(Request $request)
+    {
+        $request->validate([
+            'id_produksi' => 'required|string|max:50',
+            'pelanggan_id' => 'required|exists:pelanggans,id',
+            'pic' => 'nullable|string|max:100',
+            'biaya_design' => 'nullable|numeric|min:0',
+            'diskon' => 'nullable|numeric|min:0',
+            'bayar' => 'required|numeric|min:0',
+            'pembayaran' => 'required|in:Tunai,Bank',
+        ]);
+
+        $itemCount = DetailProduksi::where('id_produksi', $request->id_produksi)->count();
+        if ($itemCount == 0) {
+            return back()->with('error', 'Minimal harus ada 1 item dalam order.');
+        }
+
+        DB::beginTransaction();
+        try {
+            $detailItems = DetailProduksi::where('id_produksi', $request->id_produksi)->get();
+            $subtotal = $detailItems->sum('subtotal');
+
+            $biayaDesign = $request->biaya_design ?? 0;
+            $diskon = $request->diskon ?? 0;
+            $totalTagihan = $subtotal + $biayaDesign - $diskon;
+            $bayar = $request->bayar;
+
+            $keterangan = ($bayar >= $totalTagihan) ? 'LUNAS' : 'UTANG';
+            $sisaTagihan = max(0, $totalTagihan - $bayar);
+
+            $produksi = Produksi::create([
+                'id_produksi' => $request->id_produksi,
+                'pelanggan_id' => $request->pelanggan_id,
+                'pic' => $request->pic,
+                'biaya_design' => $biayaDesign,
+                'diskon' => $diskon,
+                'total_tagihan' => $totalTagihan,
+                'bayar' => $bayar,
+                'pembayaran' => $request->pembayaran,
+                'keterangan' => $keterangan,
+                'tanggal' => now(),
+                'user_id' => auth()->id(),
+                'status' => true,
+            ]);
+
+            DetailProduksi::where('id_produksi', $request->id_produksi)
+                ->update(['id_produksi' => $produksi->id_produksi]);
+
+            if ($keterangan === 'UTANG') {
+                Piutang::create([
+                    'id_produksi' => $produksi->id_produksi,
+                    'pelanggan_id' => $request->pelanggan_id,
+                    'total_tagihan' => $totalTagihan,
+                    'sisa_tagihan' => $sisaTagihan,
+                ]);
+            }
+
+            $nominalBayar = $bayar > 0 ? $bayar : $totalTagihan;
+            DetailPiutang::create([
+                'id_produksi' => $produksi->id_produksi,
+                'cicilan_ke' => 'DP',
+                'nominal' => $nominalBayar,
+                'tanggal' => now(),
+                'pembayaran' => $request->pembayaran,
+            ]);
+
+            DB::commit();
+
+            session()->forget(['order_pelanggan_id', 'order_id_produksi']);
+
+            return redirect()
+                ->route('produksi.invoice', $produksi->id_produksi)
+                ->with('success', 'Order berhasil disimpan.');
+        } catch (\Exception $e) {
+            DB::rollBack();
+            return back()
+                ->withInput()
+                ->with('error', 'Gagal menyimpan order: ' . $e->getMessage());
+        }
     }
 }

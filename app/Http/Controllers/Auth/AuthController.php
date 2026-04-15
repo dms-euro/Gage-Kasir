@@ -47,7 +47,7 @@ class AuthController extends Controller
         Auth::logout();
         $request->session()->invalidate();
         $request->session()->regenerateToken();
-        return redirect()->route('loginShow')->with('success', 'Logout berhasil.');
+        return redirect()->route('login')->with('success', 'Logout berhasil.');
     }
 
     // Register
@@ -75,7 +75,7 @@ class AuthController extends Controller
 
         User::create($validate);
 
-        return redirect()->route('loginShow')->with('success', 'Registrasi berhasil. Silakan login.');
+        return redirect()->route('login')->with('success', 'Registrasi berhasil. Silakan login.');
     }
 
     /**
