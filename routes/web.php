@@ -3,6 +3,7 @@
 use App\Http\Controllers\Auth\AuthController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\PelangganController;
+use App\Http\Controllers\PiutangController;
 use App\Http\Controllers\ProduksiController;
 use App\Http\Controllers\ProfilPerusahaanController;
 use Illuminate\Support\Facades\Route;
@@ -33,6 +34,7 @@ Route::middleware('auth')->group(function () {
     Route::delete('/produksi/detail/{id}', [ProduksiController::class, 'destroyDetail'])->name('produksi.detail.destroy');
     Route::get('/produksi/invoice/{id_produksi}', [ProduksiController::class, 'invoice'])->name('produksi.invoice');
     Route::delete('/produksi/{id}', [ProduksiController::class, 'destroy'])->name('produksi.destroy');
+    Route::get('/piutang', [PiutangController::class, 'index'])->name('piutang.index');
     Route::get('/profile-perusahaan', [ProfilPerusahaanController::class, 'index'])->name('profile-perusahaan.index');
     Route::put('/profile-perusahaan', [ProfilPerusahaanController::class, 'update'])->name('profile-perusahaan.update');
     Route::post('/logout', [AuthController::class, 'logout'])->name('logout');

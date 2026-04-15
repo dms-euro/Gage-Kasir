@@ -1,118 +1,353 @@
 @extends('layouts.app')
-@section('title', 'Invoice')
+
+@section('title', 'Invoice #' . $produksi->id_produksi)
+
 @section('content')
     <div>
-        <div class="intro-y flex flex-col sm:flex-row items-center mt-8">
+        <div class="intro-y flex flex-col sm:flex-row items-center mt-8 no-print">
             <h2 class="text-lg font-medium mr-auto">
-                Invoice Layout
+                Invoice #{{ $produksi->id_produksi }}
             </h2>
             <div class="w-full sm:w-auto flex mt-4 sm:mt-0">
-                <button class="btn btn-primary shadow-md mr-2">Print</button>
-                <div class="dropdown ml-auto sm:ml-0">
-                    <button class="dropdown-toggle btn px-2 box" aria-expanded="false" data-tw-toggle="dropdown">
-                        <span class="w-5 h-5 flex items-center justify-center"> <i class="w-4 h-4" data-lucide="plus"></i>
-                        </span>
-                    </button>
-                    <div class="dropdown-menu w-40">
-                        <div class="dropdown-content">
-                            <a href="" class="dropdown-item"> <i data-lucide="file" class="w-4 h-4 mr-2"></i> Export
-                                Word </a>
-                            <a href="" class="dropdown-item"> <i data-lucide="file" class="w-4 h-4 mr-2"></i> Export
-                                PDF </a>
+                <button class="btn btn-primary shadow-md mr-2 no-print" onclick="printInvoice()">
+                    <i data-lucide="printer" class="w-4 h-4 mr-2"></i> Print
+                </button>
+                <a href="{{ route('produksi.index') }}" class="btn btn-primary shadow-md mr-2 no-print">
+                    <i data-lucide="home" class="w-4 h-4 mr-2"></i> Kembali
+                </a>
+            </div>
+        </div>
+
+        {{-- INVOICE CONTENT --}}
+        <div class="invoice-print-area intro-y box overflow-hidden mt-5" id="invoice-content">
+            <div
+                class="flex flex-col lg:flex-row items-center lg:items-start pt-10 px-5 sm:px-20 sm:pt-20 lg:pb-10 text-center sm:text-left">
+                {{-- Logo & Nama Perusahaan --}}
+                <div class="flex items-center gap-4">
+                    @if ($Profilperusahaan->logo)
+                        <div class="w-16 h-16 rounded-lg overflow-hidden bg-slate-100 flex items-center justify-center">
+                            <img src="{{ asset('storage/' . $Profilperusahaan->logo) }}" alt="Logo"
+                                class="w-full h-full object-contain">
+                        </div>
+                    @endif
+                    <div>
+                        <div class="font-bold text-primary text-2xl sm:text-3xl">
+                            {{ $Profilperusahaan->nama ?? 'Nama Perusahaan' }}
+                        </div>
+                        <div class="text-slate-500 text-sm mt-1">Invoice Resmi</div>
+                    </div>
+                </div>
+
+                {{-- Info Perusahaan (Kanan) --}}
+                <div class="mt-8 lg:mt-0 lg:ml-auto lg:text-right">
+                    <div class="inline-block px-4 py-1 bg-primary/10 rounded-full text-primary font-medium text-sm mb-3">
+                        {{ $Profilperusahaan->nama ?? 'Nama Perusahaan' }}
+                    </div>
+                    <div class="space-y-1 text-sm">
+                        <div class="flex lg:justify-end items-center gap-2">
+                            <i data-lucide="mail" class="w-4 h-4 text-slate-400"></i>
+                            <span>{{ $Profilperusahaan->email ?? '-' }}</span>
+                        </div>
+                        <div class="flex lg:justify-end items-center gap-2">
+                            <i data-lucide="map-pin" class="w-4 h-4 text-slate-400"></i>
+                            <span>{{ $Profilperusahaan->alamat ?? '-' }}</span>
+                        </div>
+                        <div class="flex lg:justify-end items-center gap-2">
+                            <i data-lucide="phone" class="w-4 h-4 text-slate-400"></i>
+                            <span>{{ $Profilperusahaan->telepon ?? '-' }}</span>
                         </div>
                     </div>
                 </div>
             </div>
-        </div>
-        <!-- BEGIN: Invoice -->
-        <div class="intro-y box overflow-hidden mt-5">
-            <div class="flex flex-col lg:flex-row pt-10 px-5 sm:px-20 sm:pt-20 lg:pb-20 text-center sm:text-left">
-                <div class="font-semibold text-primary text-3xl">INVOICE</div>
-                <div class="mt-20 lg:mt-0 lg:ml-auto lg:text-right">
-                    <div class="text-xl text-primary font-medium">Left4code</div>
-                    <div class="mt-1">left4code@gmail.com</div>
-                    <div class="mt-1">8023 Amerige Street Harriman, NY 10926.</div>
-                </div>
-            </div>
-            <div class="flex flex-col lg:flex-row border-b px-5 sm:px-20 pt-10 pb-10 sm:pb-20 text-center sm:text-left">
+            <div
+                class="flex flex-col lg:flex-row border-y border-slate-200 dark:border-darkmode-400 bg-slate-50/50 dark:bg-darkmode-700/30 px-5 sm:px-20 py-8 sm:py-12">
                 <div>
-                    <div class="text-base text-slate-500">Client Details</div>
-                    <div class="text-lg font-medium text-primary mt-2">Arnold Schwarzenegger</div>
-                    <div class="mt-1">arnodlschwarzenegger@gmail.com</div>
-                    <div class="mt-1">260 W. Storm Street New York, NY 10025.</div>
+                    <div class="flex items-center gap-2 text-slate-500 text-sm mb-3">
+                        <i data-lucide="user" class="w-4 h-4"></i>
+                        <span class="font-medium uppercase tracking-wide">Data Pelanggan</span>
+                    </div>
+                    <div class="space-y-2">
+                        <div class="text-xl font-semibold text-primary">
+                            {{ $produksi->pelanggan->nama_lengkap ?? $produksi->pelanggan->nama }}
+                        </div>
+                        <div class="grid grid-cols-1 gap-1 text-sm">
+                            <div class="flex items-center gap-2">
+                                <span class="text-slate-400 w-20">ID</span>
+                                <span class="font-medium">{{ $produksi->pelanggan->id_pelanggan ?? '-' }}</span>
+                            </div>
+                            <div class="flex items-center gap-2">
+                                <span class="text-slate-400 w-20">Contact</span>
+                                <span>{{ $produksi->pelanggan->cp ?? ($produksi->pelanggan->no_hp ?? '-') }}</span>
+                            </div>
+                            <div class="flex items-start gap-2">
+                                <span class="text-slate-400 w-20">Alamat</span>
+                                <span>{{ $produksi->pelanggan->alamat ?? '-' }}</span>
+                            </div>
+                            <div class="flex items-center gap-2">
+                                <span class="text-slate-400 w-20">Broker</span>
+                                <span>
+                                    <span class="px-2 py-0.5 bg-slate-100 dark:bg-darkmode-600 rounded text-xs">
+                                        {{ $produksi->pelanggan->broker ?? 'Non Broker' }}
+                                    </span>
+                                </span>
+                            </div>
+                        </div>
+                    </div>
                 </div>
-                <div class="mt-10 lg:mt-0 lg:ml-auto lg:text-right">
-                    <div class="text-base text-slate-500">Receipt</div>
-                    <div class="text-lg text-primary font-medium mt-2">#1923195</div>
-                    <div class="mt-1">Jan 02, 2021</div>
+                <div class="mt-8 lg:mt-0 lg:ml-auto lg:text-right">
+                    <div class="flex lg:justify-end items-center gap-2 text-slate-500 text-sm mb-3">
+                        <i data-lucide="file-text" class="w-4 h-4"></i>
+                        <span class="font-medium uppercase tracking-wide">Detail Invoice</span>
+                    </div>
+                    <div class="space-y-2">
+                        <div>
+                            <div class="text-2xl font-bold text-primary">#{{ $produksi->id_produksi }}</div>
+                            <div class="text-slate-500 text-sm mt-1">
+                                {{ \Carbon\Carbon::parse($produksi->tanggal)->translatedFormat('d F Y') }}
+                            </div>
+                        </div>
+                        <div class="mt-3">
+                            @if ($produksi->keterangan == 'LUNAS')
+                                <span
+                                    class="inline-flex items-center gap-1 px-4 py-1.5 bg-success/10 text-success rounded-full text-sm font-medium">
+                                    <i data-lucide="check-circle" class="w-4 h-4"></i>
+                                    LUNAS
+                                </span>
+                            @else
+                                <span
+                                    class="inline-flex items-center gap-1 px-4 py-1.5 bg-warning/10 text-warning rounded-full text-sm font-medium">
+                                    <i data-lucide="clock" class="w-4 h-4"></i>
+                                    UTANG
+                                </span>
+                            @endif
+                        </div>
+                        <div class="text-sm text-slate-500 mt-2">
+                            <span class="text-slate-400">PIC:</span> {{ $produksi->pic ?? '-' }}
+                        </div>
+                    </div>
                 </div>
             </div>
-            <div class="px-5 sm:px-16 py-10 sm:py-20">
-                <div class="overflow-x-auto">
+            <div class="px-5 sm:px-16 py-8 sm:py-12">
+                <div class="flex items-center gap-2 text-slate-500 text-sm mb-4">
+                    <i data-lucide="shopping-cart" class="w-4 h-4"></i>
+                    <span class="font-medium uppercase tracking-wide">Rincian Item</span>
+                </div>
+
+                <div class="overflow-x-auto rounded-lg border border-slate-200 dark:border-darkmode-400">
                     <table class="table">
                         <thead>
-                            <tr>
-                                <th class="border-b-2 dark:border-darkmode-400 whitespace-nowrap">DESCRIPTION</th>
-                                <th class="border-b-2 dark:border-darkmode-400 text-right whitespace-nowrap">QTY</th>
-                                <th class="border-b-2 dark:border-darkmode-400 text-right whitespace-nowrap">PRICE</th>
-                                <th class="border-b-2 dark:border-darkmode-400 text-right whitespace-nowrap">SUBTOTAL</th>
+                            <tr class="bg-slate-50 dark:bg-darkmode-800">
+                                <th class="whitespace-nowrap px-4 py-3 text-left">DESKRIPSI</th>
+                                <th class="whitespace-nowrap px-4 py-3 text-right">UKURAN (m)</th>
+                                <th class="whitespace-nowrap px-4 py-3 text-right">QTY</th>
+                                <th class="whitespace-nowrap px-4 py-3 text-right">HARGA/m²</th>
+                                <th class="whitespace-nowrap px-4 py-3 text-right">SUBTOTAL</th>
                             </tr>
                         </thead>
                         <tbody>
-                            <tr>
-                                <td class="border-b dark:border-darkmode-400">
-                                    <div class="font-medium whitespace-nowrap">Midone HTML Admin Template</div>
-                                    <div class="text-slate-500 text-sm mt-0.5 whitespace-nowrap">Regular License</div>
-                                </td>
-                                <td class="text-right border-b dark:border-darkmode-400 w-32">2</td>
-                                <td class="text-right border-b dark:border-darkmode-400 w-32">$25</td>
-                                <td class="text-right border-b dark:border-darkmode-400 w-32 font-medium">$50</td>
-                            </tr>
-                            <tr>
-                                <td class="border-b dark:border-darkmode-400">
-                                    <div class="font-medium whitespace-nowrap">Vuejs Admin Template</div>
-                                    <div class="text-slate-500 text-sm mt-0.5 whitespace-nowrap">Regular License</div>
-                                </td>
-                                <td class="text-right border-b dark:border-darkmode-400 w-32">1</td>
-                                <td class="text-right border-b dark:border-darkmode-400 w-32">$25</td>
-                                <td class="text-right border-b dark:border-darkmode-400 w-32 font-medium">$25</td>
-                            </tr>
-                            <tr>
-                                <td class="border-b dark:border-darkmode-400">
-                                    <div class="font-medium whitespace-nowrap">React Admin Template</div>
-                                    <div class="text-slate-500 text-sm mt-0.5 whitespace-nowrap">Regular License</div>
-                                </td>
-                                <td class="text-right border-b dark:border-darkmode-400 w-32">1</td>
-                                <td class="text-right border-b dark:border-darkmode-400 w-32">$25</td>
-                                <td class="text-right border-b dark:border-darkmode-400 w-32 font-medium">$25</td>
-                            </tr>
-                            <tr>
-                                <td>
-                                    <div class="font-medium whitespace-nowrap">Laravel Admin Template</div>
-                                    <div class="text-slate-500 text-sm mt-0.5 whitespace-nowrap">Regular License</div>
-                                </td>
-                                <td class="text-right w-32">3</td>
-                                <td class="text-right w-32">$25</td>
-                                <td class="text-right w-32 font-medium">$75</td>
-                            </tr>
+                            @forelse ($produksi->detailProduksi as $index => $item)
+                                <tr class="{{ $index % 2 == 0 ? '' : 'bg-slate-50/50 dark:bg-darkmode-700/30' }}">
+                                    <td class="px-4 py-3">
+                                        <div class="font-medium">{{ $item->deskripsi }}</div>
+                                        <div class="text-slate-500 text-xs mt-0.5 flex items-center gap-2">
+                                            <span class="px-2 py-0.5 bg-slate-100 dark:bg-darkmode-600 rounded">
+                                                {{ $item->kategori->nama_kategori ?? '-' }}
+                                            </span>
+                                            @if ($item->bahan)
+                                                <span class="text-slate-400">•</span>
+                                                <span>{{ $item->bahan }}</span>
+                                            @endif
+                                        </div>
+                                    </td>
+                                    <td class="px-4 py-3 text-right">
+                                        {{ number_format($item->panjang, 2, ',', '.') }} ×
+                                        {{ number_format($item->lebar, 2, ',', '.') }}
+                                    </td>
+                                    <td class="px-4 py-3 text-right">{{ $item->jumlah }}</td>
+                                    <td class="px-4 py-3 text-right">Rp {{ number_format($item->harga, 0, ',', '.') }}</td>
+                                    <td class="px-4 py-3 text-right font-medium">Rp
+                                        {{ number_format($item->subtotal, 0, ',', '.') }}</td>
+                                </tr>
+                            @empty
+                                <tr>
+                                    <td colspan="5" class="text-center py-8 text-slate-500">
+                                        <i data-lucide="package" class="w-8 h-8 mx-auto mb-2 text-slate-300"></i>
+                                        Tidak ada item dalam invoice ini
+                                    </td>
+                                </tr>
+                            @endforelse
                         </tbody>
                     </table>
                 </div>
             </div>
-            <div class="px-5 sm:px-20 pb-10 sm:pb-20 flex flex-col-reverse sm:flex-row">
-                <div class="text-center sm:text-left mt-10 sm:mt-0">
-                    <div class="text-base text-slate-500">Bank Transfer</div>
-                    <div class="text-lg text-primary font-medium mt-2">Elon Musk</div>
-                    <div class="mt-1">Bank Account : 098347234832</div>
-                    <div class="mt-1">Code : LFT133243</div>
+            <div class="px-5 sm:px-16 pb-10 sm:pb-16 flex flex-col lg:flex-row gap-8">
+                <div class="lg:w-1/2">
+                    <div class="bg-slate-50 dark:bg-darkmode-700/50 rounded-lg p-5">
+                        <div class="flex items-center gap-2 text-slate-500 text-sm mb-4">
+                            <i data-lucide="credit-card" class="w-4 h-4"></i>
+                            <span class="font-medium uppercase tracking-wide">Informasi Pembayaran</span>
+                        </div>
+                        <div class="space-y-3">
+                            <div class="flex items-center justify-between">
+                                <span class="text-slate-500 mr-2">Metode :</span>
+                                <span class="font-medium">{{ $produksi->pembayaran }}</span>
+                            </div>
+                            @if ($Profilperusahaan->no_rekening && $produksi->pembayaran == 'Bank')
+                                <div class="flex items-center justify-between">
+                                    <span class="text-slate-500 mr-2">No. Rekening :</span>
+                                    <span class="font-medium font-mono">{{ $Profilperusahaan->no_rekening }}</span>
+                                </div>
+                            @endif
+                            <div class="flex items-center justify-between">
+                                <span class="text-slate-500 mr-2">Operator :</span>
+                                <span>{{ $produksi->user->nama ?? '-' }}</span>
+                            </div>
+                            <div class="border-t border-slate-200 dark:border-darkmode-400 pt-3 mt-3">
+                                <div class="flex items-center justify-between">
+                                    <span class="text-slate-500 mr-2">Status Pembayaran</span>
+                                    <span
+                                        class="{{ $produksi->keterangan == 'LUNAS' ? 'text-success' : 'text-warning' }} font-medium">
+                                        {{ $produksi->keterangan == 'LUNAS' ? '✓ Sudah Lunas' : '⏳ Belum Lunas' }}
+                                    </span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
                 </div>
-                <div class="text-center sm:text-right sm:ml-auto">
-                    <div class="text-base text-slate-500">Total Amount</div>
-                    <div class="text-xl text-primary font-medium mt-2">$20.600.00</div>
-                    <div class="mt-1">Taxes included</div>
+                <div class="lg:w-1/2 lg:ml-auto">
+                    <div class="bg-slate-50 dark:bg-darkmode-700/50 rounded-lg p-5">
+                        <div class="flex items-center gap-2 text-slate-500 text-sm mb-4">
+                            <i data-lucide="calculator" class="w-4 h-4"></i>
+                            <span class="font-medium uppercase tracking-wide">Ringkasan Biaya</span>
+                        </div>
+                        <div class="space-y-2">
+                            <div class="flex justify-between text-sm">
+                                <span class="text-slate-500 mr-2">Subtotal Item</span>
+                                <span>Rp {{ number_format($produksi->subtotal_item, 0, ',', '.') }}</span>
+                            </div>
+                            <div class="flex justify-between text-sm mt-2">
+                                <span class="text-slate-500 mr-2">Biaya Design</span>
+                                <span>Rp {{ number_format($produksi->biaya_design, 0, ',', '.') }}</span>
+                            </div>
+                            @if ($produksi->diskon > 0)
+                                <div class="flex justify-between text-sm text-danger mt-2">
+                                    <span>Diskon </span>
+                                    <span>- Rp {{ number_format($produksi->diskon, 0, ',', '.') }}</span>
+                                </div>
+                            @endif
+                            <div class="border-t border-slate-200 dark:border-darkmode-400 my-3"></div>
+                            <div class="flex justify-between font-semibold mt-2">
+                                <span>Total Tagihan</span>
+                                <span class="text-primary ml-2">Rp
+                                    {{ number_format($produksi->total_tagihan, 0, ',', '.') }}</span>
+                            </div>
+                            <div class="flex justify-between text-sm">
+                                <span class="text-slate-500 mr-2">Total Dibayar</span>
+                                <span>Rp {{ number_format($produksi->total_dibayar, 0, ',', '.') }}</span>
+                            </div>
+                            <div class="border-t border-slate-200 dark:border-darkmode-400 my-3"></div>
+                            <div class="flex justify-between items-center">
+                                <span class="text-sm text-slate-500 mr-2">Sisa Tagihan</span>
+                                @if ($produksi->sisa_tagihan == 0)
+                                    <span class="text-success font-bold flex items-center gap-1">
+                                        <i data-lucide="check-circle" class="w-5 h-5"></i>
+                                        LUNAS
+                                    </span>
+                                @else
+                                    <span class="text-warning font-bold">
+                                        Rp {{ number_format($produksi->sisa_tagihan, 0, ',', '.') }}
+                                    </span>
+                                @endif
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            @if ($produksi->detailPiutang->count() > 1)
+                <div class="px-5 sm:px-16 pb-10 sm:pb-16 border-t border-slate-200 dark:border-darkmode-400">
+                    <div class="pt-8">
+                        <div class="flex items-center gap-2 text-slate-500 text-sm mb-4">
+                            <i data-lucide="history" class="w-4 h-4"></i>
+                            <span class="font-medium uppercase tracking-wide">Riwayat Pembayaran</span>
+                        </div>
+                        <div class="overflow-x-auto rounded-lg border border-slate-200 dark:border-darkmode-400">
+                            <table class="table table-sm">
+                                <thead>
+                                    <tr class="bg-slate-50 dark:bg-darkmode-800">
+                                        <th class="whitespace-nowrap px-4 py-2 text-left">Tanggal</th>
+                                        <th class="whitespace-nowrap px-4 py-2 text-center">Cicilan Ke</th>
+                                        <th class="whitespace-nowrap px-4 py-2 text-right">Nominal</th>
+                                        <th class="whitespace-nowrap px-4 py-2 text-left">Metode</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    @foreach ($produksi->detailPiutang as $index => $pembayaran)
+                                        <tr class="{{ $index % 2 == 0 ? '' : 'bg-slate-50/50 dark:bg-darkmode-700/30' }}">
+                                            <td class="px-4 py-2">
+                                                {{ \Carbon\Carbon::parse($pembayaran->tanggal)->translatedFormat('d M Y') }}
+                                            </td>
+                                            <td class="px-4 py-2 text-center">
+                                                <span
+                                                    class="px-2 py-0.5 bg-slate-100 dark:bg-darkmode-600 rounded text-xs">
+                                                    {{ $pembayaran->cicilan_ke }}
+                                                </span>
+                                            </td>
+                                            <td class="px-4 py-2 text-right font-medium">
+                                                Rp {{ number_format($pembayaran->nominal, 0, ',', '.') }}
+                                            </td>
+                                            <td class="px-4 py-2">
+                                                <span
+                                                    class="px-2 py-0.5 bg-slate-100 dark:bg-darkmode-600 rounded text-xs">
+                                                    {{ $pembayaran->pembayaran }}
+                                                </span>
+                                            </td>
+                                        </tr>
+                                    @endforeach
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            @endif
+            <div class="px-5 sm:px-16 pb-10 sm:pb-12 text-center border-t border-slate-200 dark:border-darkmode-400">
+                <div class="pt-6 text-slate-500 text-sm">
+                    <p>Terima kasih telah menggunakan jasa kami.</p>
                 </div>
             </div>
         </div>
-        <!-- END: Invoice -->
     </div>
+    @push('scripts')
+        <script>
+            function printInvoice() {
+                const originalTitle = document.title;
+
+                document.title = 'Invoice-{{ $produksi->id_produksi }}';
+
+                window.print();
+
+                document.title = originalTitle;
+            }
+        </script>
+    @endpush
+
+    <style>
+        @media print {
+            body * {
+                visibility: hidden;
+            }
+
+            #invoice-content,
+            #invoice-content * {
+                visibility: visible;
+            }
+
+            #invoice-content {
+                position: absolute;
+                left: 0;
+                top: 0;
+                width: 100%;
+            }
+
+        }
+    </style>
 @endsection

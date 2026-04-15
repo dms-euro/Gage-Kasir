@@ -56,13 +56,15 @@
                     </a>
                 </li>
                 <li>
-                    <a href="{{ route('produksi.index') }}" class="side-menu">
+                    <a href="{{ route('produksi.index', ['mode' => 'today']) }}"
+                        class="side-menu {{ request('mode', 'today') == 'today' ? 'side-menu--active' : '' }}">
                         <div class="side-menu__icon"> <i data-lucide="activity"></i> </div>
                         <div class="side-menu__title"> Produksi Hari Ini </div>
                     </a>
                 </li>
                 <li>
-                    <a href="{{ route('produksi.index') }}" class="side-menu">
+                    <a href="{{ route('produksi.index', ['mode' => 'all']) }}"
+                        class="side-menu {{ request('mode') == 'all' ? 'side-menu--active' : '' }}">
                         <div class="side-menu__icon"> <i data-lucide="activity"></i> </div>
                         <div class="side-menu__title"> Semua Produksi </div>
                     </a>
@@ -70,7 +72,7 @@
             </ul>
         </li>
         <li>
-            <a href="side-menu-light-point-of-sale.html" class="side-menu">
+            <a href="{{ route('piutang.index') }}" class="side-menu">
                 <div class="side-menu__icon"> <i data-lucide="credit-card"></i> </div>
                 <div class="side-menu__title"> Piutang </div>
             </a>

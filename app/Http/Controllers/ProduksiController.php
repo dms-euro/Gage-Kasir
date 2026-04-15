@@ -8,6 +8,7 @@ use App\Models\Kategori;
 use App\Models\Pelanggan;
 use App\Models\Piutang;
 use App\Models\Produksi;
+use App\Models\ProfilPerusahaan;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 
@@ -55,17 +56,13 @@ class ProduksiController extends Controller
 
     public function index(Request $request)
     {
+        $mode = $request->get('mode', 'today');
+
         $query = Produksi::with(['pelanggan', 'detailProduksi'])
             ->where('status', true)
             ->latest('tanggal')
             ->latest('id_produksi');
 
-        // Filter hari ini (default)
-        if (!$request->has('search')) {
-            $query->whereDate('tanggal', today());
-        }
-
-        // Search by nota
         if ($request->filled('search')) {
             $query->where('id_produksi', 'like', '%' . $request->search . '%');
         }
@@ -76,7 +73,7 @@ class ProduksiController extends Controller
             ->orderBy('nama')
             ->get();
 
-        return view('pages.produksi', compact('produksis', 'pelanggans'));
+        return view('pages.produksi', compact('produksis', 'pelanggans', 'mode',));
     }
 
     public function create(Request $request)
@@ -90,7 +87,6 @@ class ProduksiController extends Controller
         $produksi = new Produksi();
         $id_produksi = $produksi->generateIdProduksi();
 
-        // AMBIL ITEM YANG SUDAH DITAMBAHKAN
         $detailItems = DetailProduksi::where('id_produksi', $id_produksi)
             ->with('kategori')
             ->get();
@@ -306,5 +302,24 @@ class ProduksiController extends Controller
                 ->withInput()
                 ->with('error', 'Gagal menyimpan order: ' . $e->getMessage());
         }
+    }
+
+    public function invoice($id_produksi)
+    {
+        $Profilperusahaan = ProfilPerusahaan::first();
+
+        $produksi = Produksi::where('id_produksi', $id_produksi)
+            ->with([
+                'pelanggan',
+                'detailProduksi.kategori',
+                'piutang',
+                'detailPiutang' => function ($query) {
+                    $query->orderBy('tanggal', 'asc');
+                },
+                'user'
+            ])
+            ->firstOrFail();
+
+        return view('pages.invoice', compact('Profilperusahaan', 'produksi'));
     }
 }

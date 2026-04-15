@@ -236,13 +236,6 @@
                         </tbody>
                     </table>
                 </div>
-
-                <div class="modal-footer">
-                    <a href="{{ route('pelanggan.index') }}" class="btn btn-outline-primary">
-                        <i data-lucide="plus" class="w-4 h-4 mr-2"></i> Pelanggan Baru
-                    </a>
-                    <button class="btn btn-outline-secondary" data-tw-dismiss="modal">Tutup</button>
-                </div>
             </div>
         </div>
     </div>
