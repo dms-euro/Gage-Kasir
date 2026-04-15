@@ -130,30 +130,18 @@
 
                             <td>
                                 <div class="flex justify-center items-center gap-2">
-                                    {{-- Detail / Invoice --}}
                                     <a href="{{ route('produksi.invoice', $produksi->id_produksi) }}"
                                         class="flex items-center text-primary text-sm" title="Detail">
                                         <i data-lucide="eye" class="w-4 h-4"></i>
                                     </a>
 
-                                    {{-- Cetak --}}
-                                    {{-- <a href="{{ route('produksi.cetak', $produksi->id_produksi) }}"
-                                        class="flex items-center text-info text-sm" target="_blank" title="Cetak">
-                                        <i data-lucide="printer" class="w-4 h-4"></i>
-                                    </a> --}}
-
-                                    {{-- Cancel (Hanya jika bisa dicancel) --}}
                                     @if ($produksi->can_cancel)
-                                        <form action="{{ route('produksi.destroy', $produksi->id_produksi) }}"
-                                            method="POST" class="inline">
-                                            @csrf
-                                            @method('DELETE')
-                                            <button type="submit" class="flex items-center text-danger text-sm"
-                                                onclick="return confirm('Batalkan order #{{ $produksi->id_produksi }}?')"
-                                                title="Cancel Order">
-                                                <i data-lucide="x-circle" class="w-4 h-4"></i>
-                                            </button>
-                                        </form>
+                                        <button type="button" class="flex items-center text-danger text-sm"
+                                            data-tw-toggle="modal" data-tw-target="#delete-confirmation-modal"
+                                            onclick="setDeleteAction('{{ route('produksi.destroy', $produksi->id_produksi) }}', '{{ $produksi->id_produksi }}')"
+                                            title="Cancel Order">
+                                            <i data-lucide="x-circle" class="w-4 h-4"></i>
+                                        </button>
                                     @endif
                                 </div>
                             </td>
@@ -240,6 +228,39 @@
         </div>
     </div>
 
+    <div id="delete-confirmation-modal" class="modal" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <form id="delete-form" method="POST">
+                    @csrf
+                    @method('DELETE')
+                    <div class="modal-body p-0">
+                        <div class="p-5 text-center">
+                            <i data-lucide="alert-triangle" class="w-16 h-16 text-warning mx-auto mt-3"></i>
+
+                            <div class="text-2xl mt-5 font-medium">
+                                Batalkan Order?
+                            </div>
+
+                            <div class="text-slate-500 mt-2" id="delete-text">
+                                Order akan dibatalkan (bukan dihapus).
+                            </div>
+                        </div>
+
+                        <div class="px-5 pb-8 text-center">
+                            <button type="button" data-tw-dismiss="modal" class="btn btn-outline-secondary w-24 mr-1">
+                                Batal
+                            </button>
+
+                            <button type="submit" class="btn btn-danger w-24">
+                                Ya
+                            </button>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
     @push('scripts')
         <script>
             // Search pelanggan di modal
@@ -256,6 +277,15 @@
                     }
                 });
             });
+        </script>
+        <script>
+            function setDelete(id) {
+                let form = document.getElementById('delete-form');
+                form.action = '/produksi/' + id;
+
+                document.getElementById('delete-text').innerText =
+                    'Order #' + id + ' akan dibatalkan (tidak dihapus).';
+            }
         </script>
     @endpush
 @endsection

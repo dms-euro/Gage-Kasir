@@ -20,6 +20,7 @@ Route::middleware('auth')->group(function () {
     Route::get('/pelanggan', [PelangganController::class, 'index'])->name('pelanggan.index');
     Route::post('/pelanggan', [PelangganController::class, 'store'])->name('pelanggan.store');
     Route::put('/pelanggan/{id}', [PelangganController::class, 'update'])->name('pelanggan.update');
+    Route::get('/pelanggan/{id}/produksi', [PelangganController::class, 'produksi'])->name('pelanggan.produksi');
     Route::delete('/pelanggan/{id}', [PelangganController::class, 'destroy'])->name('pelanggan.destroy');
     Route::get('/produksi/kategori', [ProduksiController::class, 'kategoriIndex'])->name('kategori.index');
     Route::post('/produksi/kategori', [ProduksiController::class, 'kategoriStore'])->name('kategori.store');
@@ -35,6 +36,8 @@ Route::middleware('auth')->group(function () {
     Route::get('/produksi/invoice/{id_produksi}', [ProduksiController::class, 'invoice'])->name('produksi.invoice');
     Route::delete('/produksi/{id}', [ProduksiController::class, 'destroy'])->name('produksi.destroy');
     Route::get('/piutang', [PiutangController::class, 'index'])->name('piutang.index');
+    Route::get('/piutang/{id_produksi}', [PiutangController::class, 'show'])->name('piutang.show');
+    Route::post('/piutang/{id_produksi}/bayar', [PiutangController::class, 'bayar'])->name('piutang.bayar');
     Route::get('/profile-perusahaan', [ProfilPerusahaanController::class, 'index'])->name('profile-perusahaan.index');
     Route::put('/profile-perusahaan', [ProfilPerusahaanController::class, 'update'])->name('profile-perusahaan.update');
     Route::post('/logout', [AuthController::class, 'logout'])->name('logout');

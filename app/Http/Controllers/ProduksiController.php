@@ -142,6 +142,21 @@ class ProduksiController extends Controller
         }
     }
 
+    public function destroy($id)
+    {
+        $produksi = Produksi::where('id_produksi', $id)->firstOrFail();
+
+        if (!$produksi->can_cancel) {
+            return back()->with('error', 'Produksi tidak bisa dibatalkan');
+        }
+
+        $produksi->update([
+            'status' => 0
+        ]);
+
+        return back()->with('success', 'Produksi berhasil dibatalkan');
+    }
+
     /**
      * Hapus detail item
      */
@@ -152,6 +167,7 @@ class ProduksiController extends Controller
             $pelanggan_id = request('pelanggan_id');
 
             $detail->delete();
+
 
             return redirect()
                 ->route('produksi.create', ['pelanggan_id' => $pelanggan_id])

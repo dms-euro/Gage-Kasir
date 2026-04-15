@@ -3,6 +3,8 @@
 namespace App\Http\Controllers;
 
 use App\Models\Pelanggan;
+use App\Models\Piutang;
+use App\Models\Produksi;
 use Illuminate\Http\Request;
 
 class PelangganController extends Controller
@@ -37,14 +39,6 @@ class PelangganController extends Controller
     }
 
     /**
-     * Show the form for creating a new resource.
-     */
-    public function create()
-    {
-        //
-    }
-
-    /**
      * Store a newly created resource in storage.
      */
     public function store(Request $request)
@@ -73,9 +67,39 @@ class PelangganController extends Controller
     /**
      * Display the specified resource.
      */
-    public function show(string $id)
+    public function produksi(Request $request, $id)
     {
-        //
+        $pelanggan = Pelanggan::findOrFail($id);
+
+        $query = Produksi::with(['detailProduksi', 'piutang'])
+            ->where('pelanggan_id', $id)
+            ->latest('tanggal');
+
+        // Filter status
+        if ($request->status == 'LUNAS') {
+            $query->where('keterangan', 'LUNAS')->where('status', true);
+        } elseif ($request->status == 'UTANG') {
+            $query->where('keterangan', 'UTANG')->where('status', true);
+        } elseif ($request->status == 'CANCELLED') {
+            $query->where('status', false);
+        } else {
+            $query->where('status', true);
+        }
+
+        $produksis = $query->paginate(15);
+
+        // Summary
+        $totalOrder = Produksi::where('pelanggan_id', $id)->where('status', true)->count();
+        $totalTransaksi = Produksi::where('pelanggan_id', $id)->where('status', true)->sum('total_tagihan');
+        $totalPiutang = Piutang::where('pelanggan_id', $id)->where('sisa_tagihan', '>', 0)->sum('sisa_tagihan');
+
+        return view('pages.pelanggan_produksi', compact(
+            'pelanggan',
+            'produksis',
+            'totalOrder',
+            'totalTransaksi',
+            'totalPiutang'
+        ));
     }
 
     /**

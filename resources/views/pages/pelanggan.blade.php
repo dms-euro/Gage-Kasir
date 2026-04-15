@@ -11,18 +11,15 @@
                     <i data-lucide="plus" class="w-4 h-4 mr-1"></i> Tambah Pelanggan Baru
                 </button>
                 <div class="hidden md:block mx-auto text-slate-500">
-                    Menampilkan {{ $pelanggans->count() }} dari {{ $pelanggans->total() }} data pelanggan
+                    Menampilkan {{ $pelanggans->firstItem() ?? 0 }} - {{ $pelanggans->lastItem() ?? 0 }} dari {{ $pelanggans->total() }} data pelanggan
                 </div>
                 <div class="w-full sm:w-auto mt-3 sm:mt-0 sm:ml-auto md:ml-0">
                     <div class="w-56 relative text-slate-500">
-
                         <form method="GET">
                             <input type="text" name="search" value="{{ request('search') }}"
                                 class="form-control w-56 box pr-10" placeholder="Search..." />
                         </form>
-
                         <i class="w-4 h-4 absolute my-auto inset-y-0 mr-3 right-0" data-lucide="search"></i>
-
                     </div>
                 </div>
             </div>
@@ -38,38 +35,48 @@
                                 <th class="whitespace-nowrap">Alamat</th>
                                 <th class="whitespace-nowrap">No. HP</th>
                                 <th class="whitespace-nowrap">Broker</th>
-                                <th class="whitespace-nowrap">Aksi</th>
+                                <th class="whitespace-nowrap text-center">Aksi</th>
                             </tr>
                         </thead>
                         <tbody>
                             @foreach ($pelanggans as $pelanggan)
                                 <tr class="pelanggan-row">
-                                    <td>{{ $loop->iteration }}</td>
+                                    <td>{{ $loop->iteration + ($pelanggans->firstItem() - 1) }}</td>
                                     <td class="searchable">{{ $pelanggan->id_pelanggan }}</td>
                                     <td class="searchable">{{ $pelanggan->nama }}</td>
-                                    <td class="searchable">{{ $pelanggan->cv }}</td>
-                                    <td class="searchable">{{ $pelanggan->alamat }}</td>
-                                    <td class="searchable">{{ $pelanggan->no_hp }}</td>
+                                    <td class="searchable">{{ $pelanggan->cv ?? '-' }}</td>
+                                    <td class="searchable">{{ $pelanggan->alamat ?? '-' }}</td>
+                                    <td class="searchable">{{ $pelanggan->no_hp ?? $pelanggan->cp ?? '-' }}</td>
                                     <td class="searchable">{{ $pelanggan->broker }}</td>
                                     <td>
-                                        <div class="flex items-center">
-                                            <button class="btn btn-primary shadow-md mr-2" data-tw-toggle="modal"
-                                                data-tw-target="#modal-edit-pelanggan"
-                                                onclick="openEdit(
-                                                    '{{ $pelanggan->id }}',
-                                                    '{{ $pelanggan->nama }}',
-                                                    '{{ $pelanggan->cv }}',
-                                                    `{{ $pelanggan->alamat }}`,
-                                                    '{{ $pelanggan->no_hp }}',
-                                                    '{{ $pelanggan->broker }}'
-                                                )">
+                                        <div class="flex items-center justify-center gap-1">
+                                            {{-- Tombol Keranjang - Lihat Riwayat Produksi --}}
+                                            <a href="{{ route('pelanggan.produksi', $pelanggan->id) }}"
+                                               class="btn btn-sm btn-outline-primary shadow-md"
+                                               title="Riwayat Produksi">
+                                                <i data-lucide="shopping-bag" class="w-4 h-4"></i>
+                                            </a>
+
+                                            {{-- Tombol Edit --}}
+                                            <button class="btn btn-sm btn-outline-secondary shadow-md"
+                                                    data-tw-toggle="modal" data-tw-target="#modal-edit-pelanggan"
+                                                    onclick="openEdit(
+                                                        '{{ $pelanggan->id }}',
+                                                        '{{ $pelanggan->nama }}',
+                                                        '{{ $pelanggan->cv }}',
+                                                        `{{ $pelanggan->alamat }}`,
+                                                        '{{ $pelanggan->no_hp ?? $pelanggan->cp }}',
+                                                        '{{ $pelanggan->broker }}'
+                                                    )">
                                                 <i data-lucide="edit" class="w-4 h-4"></i>
                                             </button>
+
+                                            {{-- Tombol Hapus --}}
                                             <form action="{{ route('pelanggan.destroy', $pelanggan->id) }}" method="POST"
-                                                onsubmit="return confirm('Are you sure?')">
+                                                onsubmit="return confirm('Yakin hapus pelanggan ini?')" class="inline">
                                                 @csrf
                                                 @method('DELETE')
-                                                <button type="submit" class="btn btn-sm btn-danger shadow-md mr-2">
+                                                <button type="submit" class="btn btn-sm btn-outline-danger shadow-md">
                                                     <i data-lucide="trash-2" class="w-4 h-4"></i>
                                                 </button>
                                             </form>
@@ -83,7 +90,7 @@
             </div>
             <div class="intro-y col-span-12 flex flex-wrap sm:flex-row sm:flex-nowrap items-center mt-5">
                 <nav class="w-full sm:w-auto sm:mr-auto">
-                    {{ $pelanggans->links() }}
+                    {{ $pelanggans->appends(request()->query())->links() }}
                 </nav>
             </div>
         </div>
@@ -93,63 +100,43 @@
     <div id="modal-pelanggan" class="modal" tabindex="-1" aria-hidden="true">
         <div class="modal-dialog modal-lg">
             <div class="modal-content">
-
-                <!-- HEADER -->
                 <div class="modal-header">
                     <h2 class="font-medium text-base mr-auto">
                         Tambah Pelanggan
                     </h2>
                 </div>
-
-                <!-- BODY -->
                 <form action="{{ route('pelanggan.store') }}" method="POST">
                     @csrf
-
                     <div class="modal-body grid grid-cols-12 gap-4 gap-y-3">
-
-                        <!-- ID PELANGGAN (AUTO, READ ONLY) -->
                         <div class="col-span-12">
                             <label>ID Pelanggan</label>
                             <input type="text" class="form-control bg-slate-100" value="{{ $previewId }}" readonly>
                         </div>
-
-                        <!-- NAMA -->
                         <div class="col-span-12">
-                            <label>Nama</label>
-                            <input type="text" name="nama" class="form-control" placeholder="Nama pelanggan">
+                            <label>Nama <span class="text-danger">*</span></label>
+                            <input type="text" name="nama" class="form-control" placeholder="Nama pelanggan" required>
                         </div>
-
-                        <!-- CV -->
                         <div class="col-span-12">
                             <label>CV / Perusahaan</label>
                             <input type="text" name="cv" class="form-control" placeholder="Nama CV">
                         </div>
-
-                        <!-- ALAMAT -->
                         <div class="col-span-12">
                             <label>Alamat</label>
                             <textarea name="alamat" class="form-control" placeholder="Alamat lengkap"></textarea>
                         </div>
-
-                        <!-- NO HP -->
                         <div class="col-span-12 sm:col-span-6">
-                            <label>No HP</label>
+                            <label>No HP / CP</label>
                             <input type="text" name="no_hp" class="form-control" placeholder="08xxxxxxxx">
                         </div>
-
-                        <!-- BROKER -->
                         <div class="col-span-12 sm:col-span-6">
                             <label>Broker</label>
                             <select name="broker" class="form-select">
-                                <option value="broker">Broker</option>
-                                <option value="non-broker">Non-Broker</option>
-                                <option value="kenapajak ">Kenapajak</option>
+                                <option value="Non Broker">Non Broker</option>
+                                <option value="Broker">Broker</option>
+                                <option value="Pajak">Kena Pajak</option>
                             </select>
                         </div>
-
                     </div>
-
-                    <!-- FOOTER -->
                     <div class="modal-footer text-right">
                         <button type="reset" class="btn btn-outline-secondary mr-1" data-tw-dismiss="modal">
                             Batal
@@ -158,9 +145,7 @@
                             Simpan
                         </button>
                     </div>
-
                 </form>
-
             </div>
         </div>
     </div>
@@ -169,63 +154,47 @@
     <div id="modal-edit-pelanggan" class="modal" tabindex="-1" aria-hidden="true">
         <div class="modal-dialog modal-lg">
             <div class="modal-content">
-
-                <!-- HEADER -->
                 <div class="modal-header">
                     <h2 class="font-medium text-base">Edit Pelanggan</h2>
                 </div>
-
-                <!-- FORM -->
                 <form id="form-edit" method="POST">
                     @csrf
                     @method('PUT')
-
                     <div class="modal-body grid grid-cols-12 gap-4 gap-y-3">
-
                         <div class="col-span-12">
-                            <label>Nama</label>
-                            <input type="text" name="nama" id="edit_nama" class="form-control">
+                            <label>Nama <span class="text-danger">*</span></label>
+                            <input type="text" name="nama" id="edit_nama" class="form-control" required>
                         </div>
-
                         <div class="col-span-12">
                             <label>CV</label>
                             <input type="text" name="cv" id="edit_cv" class="form-control">
                         </div>
-
                         <div class="col-span-12">
                             <label>Alamat</label>
                             <textarea name="alamat" id="edit_alamat" class="form-control"></textarea>
                         </div>
-
                         <div class="col-span-12 sm:col-span-6">
-                            <label>No HP</label>
+                            <label>No HP / CP</label>
                             <input type="text" name="no_hp" id="edit_no_hp" class="form-control">
                         </div>
-
                         <div class="col-span-12 sm:col-span-6">
                             <label>Broker</label>
                             <select name="broker" id="edit_broker" class="form-select">
-                                <option value="broker">Broker</option>
-                                <option value="non-broker">Non-Broker</option>
-                                <option value="kenapajak">Kenapajak</option>
+                                <option value="Non Broker">Non Broker</option>
+                                <option value="Broker">Broker</option>
+                                <option value="Pajak">Kena Pajak</option>
                             </select>
                         </div>
-
                     </div>
-
-                    <!-- FOOTER -->
                     <div class="modal-footer text-right">
                         <button type="button" class="btn btn-outline-secondary" data-tw-dismiss="modal">
                             Batal
                         </button>
-
                         <button type="submit" class="btn btn-primary">
                             Update
                         </button>
                     </div>
-
                 </form>
-
             </div>
         </div>
     </div>
@@ -233,12 +202,11 @@
     @push('scripts')
         <script>
             function openEdit(id, nama, cv, alamat, no_hp, broker) {
-                document.getElementById('edit_nama').value = nama;
-                document.getElementById('edit_cv').value = cv;
-                document.getElementById('edit_alamat').value = alamat;
-                document.getElementById('edit_no_hp').value = no_hp;
-                document.getElementById('edit_broker').value = broker;
-
+                document.getElementById('edit_nama').value = nama || '';
+                document.getElementById('edit_cv').value = cv || '';
+                document.getElementById('edit_alamat').value = alamat || '';
+                document.getElementById('edit_no_hp').value = no_hp || '';
+                document.getElementById('edit_broker').value = broker || 'Non Broker';
                 document.getElementById('form-edit').action = `/pelanggan/${id}`;
             }
         </script>

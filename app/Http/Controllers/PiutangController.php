@@ -2,63 +2,80 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\DetailPiutang;
+use App\Models\Piutang;
+use App\Models\Produksi;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 
 class PiutangController extends Controller
 {
-    /**
-     * Display a listing of the resource.
-     */
-    public function index()
+    public function index(Request $request)
     {
-        return view('pages.piutang');
+        $query = Piutang::with(['produksi', 'pelanggan']);
+
+        if ($request->status == 'outstanding') {
+            $query->where('sisa_tagihan', '>', 0);
+        } elseif ($request->status == 'lunas') {
+            $query->where('sisa_tagihan', 0);
+        }
+
+        if ($request->filled('search')) {
+            $query->where('id_produksi', 'like', '%' . $request->search . '%');
+        }
+
+        $piutangs = $query->latest()->paginate(10);
+
+        $totalOutstanding = Piutang::where('sisa_tagihan', '>', 0)->sum('sisa_tagihan');
+        $totalLunas = Piutang::where('sisa_tagihan', 0)->sum('total_tagihan');
+        $totalCount = Piutang::where('sisa_tagihan', '>', 0)->count();
+
+        return view('pages.piutang', compact('piutangs', 'totalOutstanding', 'totalLunas', 'totalCount'));
     }
 
-    /**
-     * Show the form for creating a new resource.
-     */
-    public function create()
+    public function show($id_produksi)
     {
-        //
+        $piutang = Piutang::where('id_produksi', $id_produksi)
+            ->with([
+                'produksi.detailProduksi.kategori',
+                'pelanggan',
+                'detailPiutang' => fn($q) => $q->latest()
+            ])
+            ->firstOrFail();
+
+        return view('pages.piutang_detail', compact('piutang'));
     }
 
-    /**
-     * Store a newly created resource in storage.
-     */
-    public function store(Request $request)
+    public function bayar(Request $request, $id_produksi)
     {
-        //
-    }
+        $request->validate([
+            'nominal' => 'required|numeric|min:1',
+            'pembayaran' => 'required|in:Tunai,Bank',
+        ]);
 
-    /**
-     * Display the specified resource.
-     */
-    public function show(string $id)
-    {
-        //
-    }
+        DB::transaction(function () use ($request, $id_produksi) {
+            $piutang = Piutang::where('id_produksi', $id_produksi)->lockForUpdate()->firstOrFail();
 
-    /**
-     * Show the form for editing the specified resource.
-     */
-    public function edit(string $id)
-    {
-        //
-    }
+            $nominal = min($request->nominal, $piutang->sisa_tagihan);
+            $sisa = $piutang->sisa_tagihan - $nominal;
 
-    /**
-     * Update the specified resource in storage.
-     */
-    public function update(Request $request, string $id)
-    {
-        //
-    }
+            $piutang->update(['sisa_tagihan' => $sisa]);
 
-    /**
-     * Remove the specified resource from storage.
-     */
-    public function destroy(string $id)
-    {
-        //
+            $cicilanKe = $piutang->detailPiutang()->count();
+
+            DetailPiutang::create([
+                'id_produksi' => $id_produksi,
+                'cicilan_ke' => $cicilanKe + 1,
+                'nominal' => $nominal,
+                'tanggal' => now(),
+                'pembayaran' => $request->pembayaran,
+            ]);
+
+            if ($sisa == 0) {
+                Produksi::where('id_produksi', $id_produksi)->update(['keterangan' => 'LUNAS']);
+            }
+        });
+
+        return back()->with('success', 'Pembayaran berhasil.');
     }
 }
