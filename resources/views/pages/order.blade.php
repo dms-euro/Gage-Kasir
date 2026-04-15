@@ -3,34 +3,6 @@
 @section('title', 'Produksi Order')
 
 @section('content')
-    {{-- Tambahkan di atas content --}}
-    @if (session('error'))
-        <div class="alert alert-danger alert-dismissible show flex items-center mb-2" role="alert">
-            <i data-lucide="alert-octagon" class="w-6 h-6 mr-2"></i>
-            {{ session('error') }}
-            <button type="button" class="btn-close" data-tw-dismiss="alert" aria-label="Close">×</button>
-        </div>
-    @endif
-
-    @if (session('success'))
-        <div class="alert alert-success alert-dismissible show flex items-center mb-2" role="alert">
-            <i data-lucide="check-circle" class="w-6 h-6 mr-2"></i>
-            {{ session('success') }}
-            <button type="button" class="btn-close" data-tw-dismiss="alert" aria-label="Close">×</button>
-        </div>
-    @endif
-
-    @if ($errors->any())
-        <div class="alert alert-danger alert-dismissible show flex items-center mb-2" role="alert">
-            <i data-lucide="alert-triangle" class="w-6 h-6 mr-2"></i>
-            <ul>
-                @foreach ($errors->all() as $error)
-                    <li>{{ $error }}</li>
-                @endforeach
-            </ul>
-            <button type="button" class="btn-close" data-tw-dismiss="alert" aria-label="Close">×</button>
-        </div>
-    @endif
     <div class="intro-y flex flex-col sm:flex-row items-center mt-8">
         <h2 class="text-lg font-medium mr-auto">
             Produksi Order
@@ -663,7 +635,7 @@
                 if (bayar === 0) {
                     const konfirmasi = confirm(
                         'Anda yakin ingin menyimpan dengan pembayaran Rp 0? Sisa akan masuk ke piutang.'
-                        );
+                    );
                     if (!konfirmasi) {
                         e.preventDefault();
                         return false;

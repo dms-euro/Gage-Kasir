@@ -31,5 +31,5 @@
     @stack('scripts')
 
 </body>
-
+    @include('layouts.alert')
 </html>

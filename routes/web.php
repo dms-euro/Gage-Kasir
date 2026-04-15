@@ -6,6 +6,7 @@ use App\Http\Controllers\PelangganController;
 use App\Http\Controllers\PiutangController;
 use App\Http\Controllers\ProduksiController;
 use App\Http\Controllers\ProfilPerusahaanController;
+use App\Http\Controllers\UssersController;
 use Illuminate\Support\Facades\Route;
 
 Route::middleware('guest')->group(function () {
@@ -40,5 +41,12 @@ Route::middleware('auth')->group(function () {
     Route::post('/piutang/{id_produksi}/bayar', [PiutangController::class, 'bayar'])->name('piutang.bayar');
     Route::get('/profile-perusahaan', [ProfilPerusahaanController::class, 'index'])->name('profile-perusahaan.index');
     Route::put('/profile-perusahaan', [ProfilPerusahaanController::class, 'update'])->name('profile-perusahaan.update');
+    Route::get('/users', [UssersController::class, 'index'])->name('user.index');
+    Route::post('/users', [UssersController::class, 'store'])->name('user.store');
+    Route::put('/users/{id}', [UssersController::class, 'update'])->name('user.update');
+    Route::delete('/users/{id}', [UssersController::class, 'destroy'])->name('user.destroy');
+    Route::get('/me', [UssersController::class, 'me'])->name('me.index');
+    Route::put('/me/profile', [UssersController::class, 'updateProfile'])->name('me.updateProfile');
+    Route::put('/me/password', [UssersController::class, 'updatePassword'])->name('me.updatePassword');
     Route::post('/logout', [AuthController::class, 'logout'])->name('logout');
 });

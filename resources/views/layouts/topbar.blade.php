@@ -9,8 +9,31 @@
         </a>
         <nav aria-label="breadcrumb" class="-intro-x h-[45px] mr-auto">
             <ol class="breadcrumb breadcrumb-light">
-                <li class="breadcrumb-item"><a href="#">Application</a></li>
-                <li class="breadcrumb-item active" aria-current="page">Dashboard</li>
+
+                <li class="breadcrumb-item">
+                    <a href="{{ route('dashboard.index') }}">Dashboard</a>
+                </li>
+
+                @if (request()->routeIs('dashboard.*'))
+                    <li class="breadcrumb-item active">Dashboard</li>
+                @elseif (request()->routeIs('pelanggan.*'))
+                    <li class="breadcrumb-item active">Pelanggan</li>
+                @elseif(request()->routeIs('produksi.*'))
+                    <li class="breadcrumb-item active">Produksi</li>
+                @elseif(request()->routeIs('kategori.*'))
+                    <li class="breadcrumb-item active">Kategori</li>
+                @elseif(request()->routeIs('piutang.*'))
+                    <li class="breadcrumb-item active">Piutang</li>
+                @elseif(request()->routeIs('user.*'))
+                    <li class="breadcrumb-item active">User</li>
+                @elseif(request()->routeIs('profile-perusahaan.*'))
+                    <li class="breadcrumb-item active">Profil Perusahaan</li>
+                @elseif(request()->routeIs('me.*'))
+                    <li class="breadcrumb-item active">Akun</li>
+                @else
+                    <li class="breadcrumb-item active">System</li>
+                @endif
+
             </ol>
         </nav>
         <div class="intro-x dropdown w-8 h-8">
@@ -29,7 +52,7 @@
                         <hr class="dropdown-divider border-white/[0.08]">
                     </li>
                     <li>
-                        <a href="" class="dropdown-item hover:bg-white/5"> <i data-lucide="user"
+                        <a href="{{ route('me.index') }}" class="dropdown-item hover:bg-white/5"> <i data-lucide="user"
                                 class="w-4 h-4 mr-2"></i> Profile </a>
                     </li>
                     <li>
