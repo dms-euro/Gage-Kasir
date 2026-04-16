@@ -29,11 +29,74 @@
                 </div>
 
                 <div class="w-full xl:w-auto flex items-center mt-3 xl:mt-0 gap-2">
-                    {{-- Export Button --}}
+                    {{-- MODAL EXPORT PDF --}}
                     <button type="button" class="btn btn-outline-primary shadow-md" data-tw-toggle="modal"
                         data-tw-target="#export-modal">
                         <i data-lucide="file-text" class="w-4 h-4 mr-2"></i> Export PDF
                     </button>
+                    <div id="export-modal" class="modal" tabindex="-1" aria-hidden="true">
+                        <div class="modal-dialog">
+                            <div class="modal-content">
+                                <div class="modal-header">
+                                    <h2 class="font-medium text-base mr-auto">
+                                        <i data-lucide="file-text" class="w-5 h-5 mr-2 inline text-primary"></i>
+                                        Export PDF - Laporan Piutang
+                                    </h2>
+                                    <button type="button" data-tw-dismiss="modal"
+                                        class="text-slate-400 hover:text-slate-600">
+                                        <i data-lucide="x" class="w-5 h-5"></i>
+                                    </button>
+                                </div>
+
+                                <div class="modal-body">
+                                    <form id="export-form" action="{{ route('piutang.export-pdf') }}" method="GET">
+                                        <input type="hidden" name="search" value="{{ request('search') }}">
+
+                                        <div class="mb-4">
+                                            <label class="form-label font-medium">Pilih Rentang Tanggal</label>
+                                            <p class="text-slate-500 text-xs mb-3">
+                                                Kosongkan jika ingin export semua data
+                                            </p>
+                                        </div>
+
+                                        <div class="grid grid-cols-2 gap-4">
+                                            <div>
+                                                <label class="form-label text-xs">Tanggal Mulai</label>
+                                                <input type="date" name="start_date" id="export_start_date"
+                                                    class="form-control" value="{{ request('start_date') }}">
+                                            </div>
+                                            <div>
+                                                <label class="form-label text-xs">Tanggal Akhir</label>
+                                                <input type="date" name="end_date" id="export_end_date"
+                                                    class="form-control" value="{{ request('end_date') }}">
+                                            </div>
+                                        </div>
+
+                                        <div class="mt-4 p-3 bg-slate-50 rounded-lg">
+                                            <div class="flex items-center gap-2 text-sm">
+                                                <i data-lucide="info" class="w-4 h-4 text-primary"></i>
+                                                <span class="text-slate-600">Data yang akan diexport:</span>
+                                            </div>
+                                            <div class="mt-2 text-xs text-slate-500">
+                                                <span id="export-info">
+                                                    Semua data piutang
+                                                </span>
+                                            </div>
+                                        </div>
+                                    </form>
+                                </div>
+
+                                <div class="modal-footer">
+                                    <button type="button" data-tw-dismiss="modal" class="btn btn-outline-secondary w-24">
+                                        Batal
+                                    </button>
+                                    <button type="button" onclick="submitExport()" class="btn btn-primary w-32">
+                                        <i data-lucide="download" class="w-4 h-4 mr-2"></i> Export
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
                 </div>
             </div>
 
@@ -96,14 +159,16 @@
                                 </td>
                                 <td>{{ \Carbon\Carbon::parse($p->produksi->tanggal)->format('d-m-Y') }}</td>
                                 <td class="text-right">Rp {{ number_format($p->total_tagihan, 0, ',', '.') }}</td>
-                                <td class="text-right text-success">Rp {{ number_format($p->total_terbayar, 0, ',', '.') }}
+                                <td class="text-right text-success">Rp
+                                    {{ number_format($p->total_terbayar, 0, ',', '.') }}
                                 </td>
                                 <td
                                     class="text-right font-medium {{ $p->sisa_tagihan > 0 ? 'text-warning' : 'text-success' }}">
                                     Rp {{ number_format($p->sisa_tagihan, 0, ',', '.') }}
                                 </td>
                                 <td class="text-center">
-                                    <a href="{{ route('piutang.show', $p->id_produksi) }}" class="btn btn-sm btn-primary">
+                                    <a href="{{ route('piutang.show', $p->id_produksi) }}"
+                                        class="btn btn-sm btn-primary">
                                         Detail
                                     </a>
                                 </td>
@@ -122,70 +187,6 @@
             {{-- PAGINATION --}}
             <div class="intro-y col-span-12">
                 {{ $piutangs->appends(request()->query())->links() }}
-            </div>
-        </div>
-    </div>
-
-    {{-- MODAL EXPORT PDF --}}
-    <div id="export-modal" class="modal" tabindex="-1" aria-hidden="true">
-        <div class="modal-dialog">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h2 class="font-medium text-base mr-auto">
-                        <i data-lucide="file-text" class="w-5 h-5 mr-2 inline text-primary"></i>
-                        Export PDF - Laporan Piutang
-                    </h2>
-                    <button type="button" data-tw-dismiss="modal" class="text-slate-400 hover:text-slate-600">
-                        <i data-lucide="x" class="w-5 h-5"></i>
-                    </button>
-                </div>
-
-                <div class="modal-body">
-                    <form id="export-form" action="{{ route('piutang.export-pdf') }}" method="GET">
-                        <input type="hidden" name="search" value="{{ request('search') }}">
-
-                        <div class="mb-4">
-                            <label class="form-label font-medium">Pilih Rentang Tanggal</label>
-                            <p class="text-slate-500 text-xs mb-3">
-                                Kosongkan jika ingin export semua data
-                            </p>
-                        </div>
-
-                        <div class="grid grid-cols-2 gap-4">
-                            <div>
-                                <label class="form-label text-xs">Tanggal Mulai</label>
-                                <input type="date" name="start_date" id="export_start_date" class="form-control"
-                                    value="{{ request('start_date') }}">
-                            </div>
-                            <div>
-                                <label class="form-label text-xs">Tanggal Akhir</label>
-                                <input type="date" name="end_date" id="export_end_date" class="form-control"
-                                    value="{{ request('end_date') }}">
-                            </div>
-                        </div>
-
-                        <div class="mt-4 p-3 bg-slate-50 rounded-lg">
-                            <div class="flex items-center gap-2 text-sm">
-                                <i data-lucide="info" class="w-4 h-4 text-primary"></i>
-                                <span class="text-slate-600">Data yang akan diexport:</span>
-                            </div>
-                            <div class="mt-2 text-xs text-slate-500">
-                                <span id="export-info">
-                                    Semua data piutang
-                                </span>
-                            </div>
-                        </div>
-                    </form>
-                </div>
-
-                <div class="modal-footer">
-                    <button type="button" data-tw-dismiss="modal" class="btn btn-outline-secondary w-24">
-                        Batal
-                    </button>
-                    <button type="button" onclick="submitExport()" class="btn btn-primary w-32">
-                        <i data-lucide="download" class="w-4 h-4 mr-2"></i> Export
-                    </button>
-                </div>
             </div>
         </div>
     </div>

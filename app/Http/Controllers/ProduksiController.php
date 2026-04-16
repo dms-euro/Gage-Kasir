@@ -10,6 +10,7 @@ use App\Models\Piutang;
 use App\Models\Produksi;
 use App\Models\ProfilPerusahaan;
 use Barryvdh\DomPDF\Facade\Pdf;
+use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 
@@ -314,6 +315,25 @@ class ProduksiController extends Controller
         return view('pages.invoice', compact('Profilperusahaan', 'produksi'));
     }
 
+    public function cetakNota($id_produksi)
+    {
+        $Profilperusahaan = ProfilPerusahaan::first();
+
+        $produksi = Produksi::where('id_produksi', $id_produksi)
+            ->with([
+                'pelanggan',
+                'detailProduksi.kategori',
+                'piutang',
+                'detailPiutang' => function ($query) {
+                    $query->orderBy('tanggal', 'asc');
+                },
+                'user'
+            ])
+            ->firstOrFail();
+
+        return view('pages.cetak-nota', compact('Profilperusahaan', 'produksi'));
+    }
+
     public function exportPdf(Request $request)
     {
         $mode = $request->get('mode', 'today');
@@ -341,12 +361,12 @@ class ProduksiController extends Controller
             // Update title sesuai filter
             if ($request->filled('start_date') && $request->filled('end_date')) {
                 $title = 'Laporan Produksi Periode ' .
-                    \Carbon\Carbon::parse($request->start_date)->format('d M Y') . ' - ' .
-                    \Carbon\Carbon::parse($request->end_date)->format('d M Y');
+                    Carbon::parse($request->start_date)->format('d M Y') . ' - ' .
+                    Carbon::parse($request->end_date)->format('d M Y');
             } elseif ($request->filled('start_date')) {
-                $title = 'Laporan Produksi dari ' . \Carbon\Carbon::parse($request->start_date)->format('d M Y');
+                $title = 'Laporan Produksi dari ' . Carbon::parse($request->start_date)->format('d M Y');
             } elseif ($request->filled('end_date')) {
-                $title = 'Laporan Produksi sampai ' . \Carbon\Carbon::parse($request->end_date)->format('d M Y');
+                $title = 'Laporan Produksi sampai ' . Carbon::parse($request->end_date)->format('d M Y');
             }
         }
 

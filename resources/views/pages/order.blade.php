@@ -192,24 +192,35 @@
                     </div>
 
                     {{-- Ringkasan Biaya --}}
-                    <div class="bg-slate-50 dark:bg-darkmode-700 p-4 rounded-md mb-4">
-                        <div class="flex justify-between mb-2">
+                    <div class="bg-slate-50 dark:bg-darkmode-700 p-4 rounded-md mb-4 space-y-2">
+
+                        <div class="flex justify-between items-center">
                             <span class="text-slate-500">Subtotal Item</span>
-                            <span class="font-medium" id="display-subtotal">Rp
-                                {{ number_format($subtotal, 0, ',', '.') }}</span>
+                            <span class="font-medium text-right w-full max-w-[140px]" id="display-subtotal">
+                                Rp {{ number_format($subtotal, 0, ',', '.') }}
+                            </span>
                         </div>
-                        <div class="flex justify-between mb-2">
+
+                        <div class="flex justify-between items-center">
                             <span class="text-slate-500">Biaya Design</span>
-                            <span class="font-medium" id="display-biaya">Rp 0</span>
+                            <span class="font-medium text-right w-full max-w-[140px]" id="display-biaya">
+                                Rp 0
+                            </span>
                         </div>
-                        <div class="flex justify-between mb-2 text-danger">
+
+                        <div class="flex justify-between items-center text-danger">
                             <span class="text-slate-500">Diskon</span>
-                            <span class="font-medium" id="display-diskon">- Rp 0</span>
+                            <span class="font-medium text-right w-full max-w-[140px]" id="display-diskon">
+                                Rp 0
+                            </span>
                         </div>
+
                         <div class="border-t border-slate-200 dark:border-darkmode-400 my-2"></div>
-                        <div class="flex justify-between">
-                            <span class="font-medium text-base">TOTAL TAGIHAN</span>
-                            <span class="font-bold text-primary text-lg" id="display-total">
+
+                        <div class="flex justify-between items-center">
+                            <span class="font-medium text-base">TOTAL</span>
+                            <span class="font-bold text-primary text-lg text-right w-full max-w-[140px]"
+                                id="display-total">
                                 Rp {{ number_format($subtotal, 0, ',', '.') }}
                             </span>
                         </div>
@@ -248,13 +259,10 @@
                     {{-- Sisa Tagihan --}}
                     <div class="bg-warning/10 dark:bg-warning/20 p-4 rounded-md mb-5">
                         <div class="flex justify-between items-center">
-                            <span class="text-warning font-medium">SISA TAGIHAN</span>
-                            <span class="font-bold text-warning text-lg" id="display-sisa">Rp 0</span>
+                            <span class="text-warning font-medium">Kurang</span>
+                            <span class="font-bold text-warning text-right w-full max-w-[140px]" id="display-sisa">: Rp
+                                0</span>
                         </div>
-                        <small class="text-slate-500 block mt-1">
-                            <i data-lucide="info" class="w-3 h-3 inline mr-1"></i>
-                            Sisa > 0 akan masuk ke piutang dan bisa dicicil nanti
-                        </small>
                     </div>
 
                     {{-- Tombol Simpan --}}
@@ -263,21 +271,6 @@
                         Simpan Order & Cetak Invoice
                     </button>
                 </form>
-            </div>
-
-            {{-- NOTE --}}
-            <div class="box p-5 mt-5 bg-slate-50 dark:bg-darkmode-700">
-                <div class="flex items-start">
-                    <i data-lucide="info" class="w-5 h-5 text-primary mr-2 mt-0.5"></i>
-                    <div>
-                        <p class="text-sm text-slate-600 dark:text-slate-400">
-                            <strong>Catatan:</strong><br>
-                            • Minimal 1 item dalam order<br>
-                            • Sisa tagihan akan otomatis tercatat sebagai piutang<br>
-                            • Invoice akan langsung bisa dicetak setelah simpan
-                        </p>
-                    </div>
-                </div>
             </div>
         </div>
     </div>

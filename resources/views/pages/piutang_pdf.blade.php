@@ -146,29 +146,6 @@
         <strong>Total Data:</strong> {{ $piutangs->count() }} invoice
     </div>
 
-    <div class="summary">
-        <div class="summary-item">
-            <div class="summary-label">Total Tagihan</div>
-            <div class="summary-value">Rp {{ number_format($totalTagihan, 0, ',', '.') }}</div>
-        </div>
-        <div class="summary-item">
-            <div class="summary-label">Total Dibayar</div>
-            <div class="summary-value" style="color: #10b981;">Rp {{ number_format($totalDibayar, 0, ',', '.') }}</div>
-        </div>
-        <div class="summary-item">
-            <div class="summary-label">Total Sisa</div>
-            <div class="summary-value" style="color: #f59e0b;">Rp {{ number_format($totalSisa, 0, ',', '.') }}</div>
-        </div>
-        <div class="summary-item">
-            <div class="summary-label">Outstanding</div>
-            <div class="summary-value">{{ $totalOutstanding }}</div>
-        </div>
-        <div class="summary-item">
-            <div class="summary-label">Lunas</div>
-            <div class="summary-value">{{ $totalLunas }}</div>
-        </div>
-    </div>
-
     <table>
         <thead>
             <tr>

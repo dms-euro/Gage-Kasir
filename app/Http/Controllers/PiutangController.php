@@ -7,6 +7,7 @@ use App\Models\Piutang;
 use App\Models\Produksi;
 use App\Models\ProfilPerusahaan;
 use Barryvdh\DomPDF\Facade\Pdf;
+use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 
@@ -85,18 +86,7 @@ class PiutangController extends Controller
     {
         $query = Piutang::with(['produksi', 'pelanggan', 'detailPiutang']);
 
-        // Filter status
-        $statusText = 'Semua Status'; // Default value
-
-        if ($request->status == 'outstanding') {
-            $query->where('sisa_tagihan', '>', 0);
-            $statusText = 'Outstanding (Belum Lunas)';
-        } elseif ($request->status == 'lunas') {
-            $query->where('sisa_tagihan', 0);
-            $statusText = 'Lunas';
-        }
-
-        // Filter tanggal
+        // Filter tanggal - PERBAIKAN: gunakan whereHas untuk akses tabel produksi
         if ($request->filled('start_date')) {
             $query->whereHas('produksi', function ($q) use ($request) {
                 $q->whereDate('tanggal', '>=', $request->start_date);
@@ -123,16 +113,20 @@ class PiutangController extends Controller
         $totalOutstanding = $piutangs->where('sisa_tagihan', '>', 0)->count();
         $totalLunas = $piutangs->where('sisa_tagihan', 0)->count();
 
+        // Status Text
+        $statusText = 'Semua Status';
+
         // Title
         $title = 'Laporan Piutang';
         if ($request->filled('start_date') && $request->filled('end_date')) {
-            $title .= ' Periode ' . \Carbon\Carbon::parse($request->start_date)->format('d M Y') . ' - ' . \Carbon\Carbon::parse($request->end_date)->format('d M Y');
+            $title .= ' Periode ' . Carbon::parse($request->start_date)->format('d M Y') . ' - ' . Carbon::parse($request->end_date)->format('d M Y');
         } elseif ($request->filled('start_date')) {
-            $title .= ' dari ' . \Carbon\Carbon::parse($request->start_date)->format('d M Y');
+            $title .= ' dari ' . Carbon::parse($request->start_date)->format('d M Y');
         } elseif ($request->filled('end_date')) {
-            $title .= ' sampai ' . \Carbon\Carbon::parse($request->end_date)->format('d M Y');
+            $title .= ' sampai ' . Carbon::parse($request->end_date)->format('d M Y');
         }
 
+        // PERBAIKAN: kirim $statusText ke view
         $pdf = Pdf::loadView('pages.piutang_pdf', compact(
             'piutangs',
             'profil',
@@ -142,7 +136,7 @@ class PiutangController extends Controller
             'totalSisa',
             'totalOutstanding',
             'totalLunas',
-            'statusText'
+            'statusText'  // <- Tambahkan ini
         ));
 
         $pdf->setPaper('A4', 'landscape');

@@ -9,9 +9,10 @@
                 Invoice #{{ $produksi->id_produksi }}
             </h2>
             <div class="w-full sm:w-auto flex mt-4 sm:mt-0">
-                <button class="btn btn-primary shadow-md mr-2 no-print" onclick="printInvoice()">
-                    <i data-lucide="printer" class="w-4 h-4 mr-2"></i> Print
-                </button>
+                <a href="{{ route('produksi.cetak', $produksi->id_produksi) }}" class="btn btn-primary shadow-md mr-2"
+                    target="_blank">
+                    <i data-lucide="printer" class="w-4 h-4 mr-2"></i> Cetak Nota
+                </a>
                 <a href="{{ route('produksi.index') }}" class="btn btn-primary shadow-md mr-2 no-print">
                     <i data-lucide="home" class="w-4 h-4 mr-2"></i> Kembali
                 </a>

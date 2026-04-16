@@ -3,6 +3,16 @@
     {
         return request()->routeIs($route) ? 'side-menu--active' : '';
     }
+
+    function isOpen($routes)
+    {
+        foreach ((array) $routes as $route) {
+            if (request()->routeIs($route)) {
+                return true;
+            }
+        }
+        return false;
+    }
 @endphp
 
 <nav class="side-nav">
@@ -17,8 +27,8 @@
         </li>
 
         {{-- PELANGGAN --}}
-        <li>
-            <a href="javascript:;" class="side-menu {{ active('pelanggan.*') }}">
+        <li class="{{ isOpen('pelanggan.*') ? 'side-menu--active side-menu--open' : '' }}">
+            <a href="javascript:;" class="side-menu {{ isOpen('pelanggan.*') ? 'side-menu--active' : '' }}">
                 <div class="side-menu__icon"><i data-lucide="users"></i></div>
                 <div class="side-menu__title">
                     Pelanggan
@@ -26,7 +36,7 @@
                 </div>
             </a>
 
-            <ul>
+            <ul style="{{ isOpen('pelanggan.*') ? 'display:block;' : '' }}">
                 <li>
                     <a href="{{ route('pelanggan.index', ['broker' => 'broker']) }}"
                         class="side-menu {{ request('broker') == 'broker' ? 'side-menu--active' : '' }}">
@@ -54,8 +64,8 @@
         </li>
 
         {{-- PRODUKSI --}}
-        <li>
-            <a href="javascript:;" class="side-menu {{ active('produksi.*') || active('kategori.*') }}">
+        <li class="{{ isOpen(['produksi.*','kategori.*']) ? 'side-menu--active side-menu--open' : '' }}">
+            <a href="javascript:;" class="side-menu {{ isOpen(['produksi.*','kategori.*']) ? 'side-menu--active' : '' }}">
                 <div class="side-menu__icon"><i data-lucide="shopping-bag"></i></div>
                 <div class="side-menu__title">
                     Produksi
@@ -63,7 +73,7 @@
                 </div>
             </a>
 
-            <ul>
+            <ul style="{{ isOpen(['produksi.*','kategori.*']) ? 'display:block;' : '' }}">
                 @if (auth()->user()->level == 'admin')
                     <li>
                         <a href="{{ route('kategori.index') }}" class="side-menu {{ active('kategori.*') }}">
@@ -72,9 +82,10 @@
                         </a>
                     </li>
                 @endif
+
                 <li>
                     <a href="{{ route('produksi.index', ['mode' => 'today']) }}"
-                        class="side-menu {{ request('mode', 'today') == 'today' ? 'side-menu--active' : '' }}">
+                        class="side-menu {{ request('mode','today') == 'today' ? 'side-menu--active' : '' }}">
                         <div class="side-menu__icon"><i data-lucide="activity"></i></div>
                         <div class="side-menu__title">Produksi Hari Ini</div>
                     </a>
@@ -98,11 +109,10 @@
             </a>
         </li>
 
-        <li class="side-nav__devider my-6"></li>
-
+        {{-- PENGATURAN --}}
         @if (auth()->user()->level == 'admin')
-            <li>
-                <a href="javascript:;" class="side-menu {{ active('profile-perusahaan.*') || active('user.*') }}">
+            <li class="{{ isOpen(['profile-perusahaan.*','user.*']) ? 'side-menu--active side-menu--open' : '' }}">
+                <a href="javascript:;" class="side-menu {{ isOpen(['profile-perusahaan.*','user.*']) ? 'side-menu--active' : '' }}">
                     <div class="side-menu__icon"><i data-lucide="settings"></i></div>
                     <div class="side-menu__title">
                         Pengaturan
@@ -110,7 +120,7 @@
                     </div>
                 </a>
 
-                <ul>
+                <ul style="{{ isOpen(['profile-perusahaan.*','user.*']) ? 'display:block;' : '' }}">
                     <li>
                         <a href="{{ route('profile-perusahaan.index') }}"
                             class="side-menu {{ active('profile-perusahaan.*') }}">
@@ -120,7 +130,8 @@
                     </li>
 
                     <li>
-                        <a href="{{ route('user.index') }}" class="side-menu {{ active('user.*') }}">
+                        <a href="{{ route('user.index') }}"
+                            class="side-menu {{ active('user.*') }}">
                             <div class="side-menu__icon"><i data-lucide="activity"></i></div>
                             <div class="side-menu__title">Daftar User</div>
                         </a>
@@ -129,6 +140,7 @@
             </li>
         @endif
 
+        {{-- AKUN --}}
         <li>
             <a href="{{ route('me.index') }}" class="side-menu {{ active('me.*') }}">
                 <div class="side-menu__icon"><i data-lucide="user"></i></div>
@@ -136,6 +148,7 @@
             </a>
         </li>
 
+        {{-- LOGOUT --}}
         <li>
             <form action="{{ route('logout') }}" method="POST">
                 @csrf

@@ -35,12 +35,13 @@ Route::middleware('auth')->group(function () {
     Route::put('/produksi/detail/{id}', [ProduksiController::class, 'updateDetail'])->name('produksi.detail.update');
     Route::delete('/produksi/detail/{id}', [ProduksiController::class, 'destroyDetail'])->name('produksi.detail.destroy');
     Route::get('/produksi/invoice/{id_produksi}', [ProduksiController::class, 'invoice'])->name('produksi.invoice');
+    Route::get('/produksi/cetak/{id_produksi}', [ProduksiController::class, 'cetakNota'])->name('produksi.cetak');
     Route::get('/produksi/export-pdf', [ProduksiController::class, 'exportPdf'])->name('produksi.export-pdf');
     Route::delete('/produksi/{id}', [ProduksiController::class, 'destroy'])->name('produksi.destroy');
     Route::get('/piutang', [PiutangController::class, 'index'])->name('piutang.index');
+    Route::get('/piutang/export-pdf', [PiutangController::class, 'exportPdf'])->name('piutang.export-pdf');
     Route::get('/piutang/{id_produksi}', [PiutangController::class, 'show'])->name('piutang.show');
     Route::post('/piutang/{id_produksi}/bayar', [PiutangController::class, 'bayar'])->name('piutang.bayar');
-    Route::get('/piutang/export-pdf', [PiutangController::class, 'exportPdf'])->name('piutang.export-pdf');
     Route::get('/profile-perusahaan', [ProfilPerusahaanController::class, 'index'])->name('profile-perusahaan.index');
     Route::put('/profile-perusahaan', [ProfilPerusahaanController::class, 'update'])->name('profile-perusahaan.update');
     Route::get('/users', [UssersController::class, 'index'])->name('user.index');
