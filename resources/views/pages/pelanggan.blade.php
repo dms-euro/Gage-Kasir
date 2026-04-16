@@ -49,7 +49,7 @@
                                     <td class="searchable">{{ $pelanggan->no_hp ?? $pelanggan->cp ?? '-' }}</td>
                                     <td class="searchable">{{ $pelanggan->broker }}</td>
                                     <td>
-                                        <div class="flex items-center justify-center gap-1">
+                                        <div class="flex items-center justify-center gap-2">
                                             {{-- Tombol Keranjang - Lihat Riwayat Produksi --}}
                                             <a href="{{ route('pelanggan.produksi', $pelanggan->id) }}"
                                                class="btn btn-sm btn-outline-primary shadow-md"
@@ -58,7 +58,7 @@
                                             </a>
 
                                             {{-- Tombol Edit --}}
-                                            <button class="btn btn-sm btn-outline-secondary shadow-md"
+                                            <button class="btn btn-sm btn-outline-warning shadow-md"
                                                     data-tw-toggle="modal" data-tw-target="#modal-edit-pelanggan"
                                                     onclick="openEdit(
                                                         '{{ $pelanggan->id }}',

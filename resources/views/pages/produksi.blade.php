@@ -15,27 +15,6 @@
                         <i data-lucide="shopping-bag" class="w-4 h-4 mr-2"></i>
                         Order Baru
                     </button>
-                    <div class="dropdown">
-                        <button class="dropdown-toggle btn px-2 box" aria-expanded="false" data-tw-toggle="dropdown">
-                            <span class="w-5 h-5 flex items-center justify-center">
-                                <i class="w-4 h-4" data-lucide="plus"></i>
-                            </span>
-                        </button>
-                        <div class="dropdown-menu w-40">
-                            <ul class="dropdown-content">
-                                <li>
-                                    <a href="{{ route('pelanggan.index') }}" class="dropdown-item">
-                                        <i data-lucide="users" class="w-4 h-4 mr-2"></i> Tambah Pelanggan
-                                    </a>
-                                </li>
-                                <li>
-                                    <a href="{{ route('kategori.index') }}" class="dropdown-item">
-                                        <i data-lucide="tag" class="w-4 h-4 mr-2"></i> Kategori
-                                    </a>
-                                </li>
-                            </ul>
-                        </div>
-                    </div>
                 </div>
 
                 <div class="hidden xl:block mx-auto text-slate-500">
@@ -53,16 +32,95 @@
                             </button>
                         </form>
                     </div>
-                    <button class="btn btn-outline-primary shadow-md">
-                        <i data-lucide="file-text" class="w-4 h-4 mr-2"></i> Export
-                    </button>
+                    <div class="flex w-full sm:w-auto mt-3 xl:mt-0 gap-2">
+                        {{-- MODAL EXPORT PDF --}}
+                        <button type="button" class="btn btn-outline-primary shadow-md" data-tw-toggle="modal"
+                            data-tw-target="#export-modal">
+                            <i data-lucide="file-text" class="w-4 h-4 mr-2"></i> Export PDF
+                        </button>
+                        <div id="export-modal" class="modal" tabindex="-1" aria-hidden="true">
+                            <div class="modal-dialog">
+                                <div class="modal-content">
+                                    <div class="modal-header">
+                                        <h2 class="font-medium text-base mr-auto">
+                                            <i data-lucide="file-text" class="w-5 h-5 mr-2 inline text-primary"></i>
+                                            Export PDF
+                                        </h2>
+                                        <button type="button" data-tw-dismiss="modal"
+                                            class="text-slate-400 hover:text-slate-600">
+                                            <i data-lucide="x" class="w-5 h-5"></i>
+                                        </button>
+                                    </div>
+
+                                    <div class="modal-body">
+                                        <form id="export-form" action="{{ route('produksi.export-pdf') }}" method="GET">
+                                            {{-- Bawa parameter yang ada --}}
+                                            <input type="hidden" name="mode" value="{{ request('mode', 'today') }}">
+                                            <input type="hidden" name="search" value="{{ request('search') }}">
+
+                                            <div class="mb-4">
+                                                <label class="form-label font-medium">Pilih Rentang Tanggal</label>
+                                                <p class="text-slate-500 text-xs mb-3">
+                                                    Kosongkan jika ingin export semua data
+                                                </p>
+                                            </div>
+
+                                            <div class="grid grid-cols-2 gap-4">
+                                                <div>
+                                                    <label class="form-label text-xs">Tanggal Mulai</label>
+                                                    <input type="date" name="start_date" id="export_start_date"
+                                                        class="form-control" value="{{ request('start_date') }}">
+                                                </div>
+                                                <div>
+                                                    <label class="form-label text-xs">Tanggal Akhir</label>
+                                                    <input type="date" name="end_date" id="export_end_date"
+                                                        class="form-control" value="{{ request('end_date') }}">
+                                                </div>
+                                            </div>
+
+                                            <div class="mt-4 p-3 bg-slate-50 rounded-lg">
+                                                <div class="flex items-center gap-2 text-sm">
+                                                    <i data-lucide="info" class="w-4 h-4 text-primary"></i>
+                                                    <span class="text-slate-600">Data yang akan diexport:</span>
+                                                </div>
+                                                <div class="mt-2 text-xs text-slate-500">
+                                                    <span id="export-info">
+                                                        @if (request('mode') == 'today')
+                                                            Data produksi hari ini
+                                                        @else
+                                                            @if (request('start_date') && request('end_date'))
+                                                                Periode: {{ request('start_date') }} s/d
+                                                                {{ request('end_date') }}
+                                                            @else
+                                                                Semua data produksi
+                                                            @endif
+                                                        @endif
+                                                    </span>
+                                                </div>
+                                            </div>
+                                        </form>
+                                    </div>
+
+                                    <div class="modal-footer">
+                                        <button type="button" data-tw-dismiss="modal"
+                                            class="btn btn-outline-secondary w-24">
+                                            Batal
+                                        </button>
+                                        <button type="button" onclick="submitExport()" class="btn btn-primary w-32">
+                                            <i data-lucide="download" class="w-4 h-4 mr-2"></i> Export
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
 
         {{-- TABEL PRODUKSI --}}
         <div class="intro-y col-span-12 overflow-auto 2xl:overflow-visible mt-5">
-            <table class="table table-report -mt-2">
+            <table class="table table-striped">
                 <thead>
                     <tr>
                         <th class="text-center w-10">#</th>
@@ -79,14 +137,12 @@
                     @forelse ($produksis as $index => $produksi)
                         <tr class="intro-x">
                             <td class="text-center">{{ $produksis->firstItem() + $index }}</td>
-
                             <td>
                                 <a href="{{ route('produksi.invoice', $produksi->id_produksi) }}"
                                     class="underline decoration-dotted font-medium text-primary">
                                     #{{ $produksi->id_produksi }}
                                 </a>
                             </td>
-
                             <td>
                                 @if ($produksi->tanggal instanceof \Carbon\Carbon)
                                     {{ $produksi->tanggal->format('d-m-Y') }}
@@ -94,13 +150,11 @@
                                     {{ \Carbon\Carbon::parse($produksi->tanggal)->format('d-m-Y') }}
                                 @endif
                             </td>
-
                             <td>
                                 <div class="font-medium">{{ $produksi->pelanggan->nama }}</div>
                                 <div class="text-slate-500 text-xs">
                                     {{ $produksi->pelanggan->cv ?? ($produksi->pelanggan->alamat ?? '-') }}</div>
                             </td>
-
                             <td>
                                 <div class="text-sm">
                                     @php
@@ -115,11 +169,9 @@
                                     @endif
                                 </div>
                             </td>
-
                             <td class="text-right font-medium">
                                 Rp {{ number_format($produksi->total_tagihan, 0, ',', '.') }}
                             </td>
-
                             <td class="text-center">
                                 <span
                                     class="px-2 py-1 rounded-full text-xs font-medium
@@ -127,14 +179,12 @@
                                     {{ $produksi->keterangan }}
                                 </span>
                             </td>
-
                             <td>
                                 <div class="flex justify-center items-center gap-2">
                                     <a href="{{ route('produksi.invoice', $produksi->id_produksi) }}"
                                         class="flex items-center text-primary text-sm" title="Detail">
                                         <i data-lucide="eye" class="w-4 h-4"></i>
                                     </a>
-
                                     @if ($produksi->can_cancel)
                                         <button type="button" class="flex items-center text-danger text-sm"
                                             data-tw-toggle="modal" data-tw-target="#delete-confirmation-modal"
@@ -243,7 +293,7 @@
                             </div>
 
                             <div class="text-slate-500 mt-2" id="delete-text">
-                                Order akan dibatalkan (bukan dihapus).
+                                Order akan dibatalkan.
                             </div>
                         </div>
 
@@ -285,6 +335,42 @@
 
                 document.getElementById('delete-text').innerText =
                     'Order #' + id + ' akan dibatalkan (tidak dihapus).';
+            }
+        </script>
+        <script>
+            // Update info export saat tanggal berubah
+            document.getElementById('export_start_date')?.addEventListener('change', updateExportInfo);
+            document.getElementById('export_end_date')?.addEventListener('change', updateExportInfo);
+
+            function updateExportInfo() {
+                let startDate = document.getElementById('export_start_date')?.value;
+                let endDate = document.getElementById('export_end_date')?.value;
+                let infoEl = document.getElementById('export-info');
+
+                if (startDate && endDate) {
+                    infoEl.innerText = `Periode: ${startDate} s/d ${endDate}`;
+                } else if (startDate) {
+                    infoEl.innerText = `Dari tanggal: ${startDate}`;
+                } else if (endDate) {
+                    infoEl.innerText = `Sampai tanggal: ${endDate}`;
+                } else {
+                    infoEl.innerText = 'Semua data produksi';
+                }
+            }
+
+            // Submit export
+            function submitExport() {
+                let form = document.getElementById('export-form');
+
+                // Update mode if needed
+                let startDate = document.getElementById('export_start_date')?.value;
+                let endDate = document.getElementById('export_end_date')?.value;
+
+                if (startDate || endDate) {
+                    form.querySelector('input[name="mode"]').value = 'all';
+                }
+
+                form.submit();
             }
         </script>
     @endpush

@@ -222,32 +222,32 @@
                         </div>
                         <div class="space-y-2">
                             <div class="flex justify-between text-sm">
-                                <span class="text-slate-500 mr-2">Subtotal Item</span>
-                                <span>Rp {{ number_format($produksi->subtotal_item, 0, ',', '.') }}</span>
+                                <span class="text-slate-500 w-24">Subtotal Item</span>
+                                <span>: Rp {{ number_format($produksi->subtotal_item, 0, ',', '.') }}</span>
                             </div>
                             <div class="flex justify-between text-sm mt-2">
-                                <span class="text-slate-500 mr-2">Biaya Design</span>
-                                <span>Rp {{ number_format($produksi->biaya_design, 0, ',', '.') }}</span>
+                                <span class="text-slate-500 w-24">Biaya Design</span>
+                                <span>: Rp {{ number_format($produksi->biaya_design, 0, ',', '.') }}</span>
                             </div>
                             @if ($produksi->diskon > 0)
                                 <div class="flex justify-between text-sm text-danger mt-2">
                                     <span>Diskon </span>
-                                    <span>- Rp {{ number_format($produksi->diskon, 0, ',', '.') }}</span>
+                                    <span>: Rp {{ number_format($produksi->diskon, 0, ',', '.') }}</span>
                                 </div>
                             @endif
                             <div class="border-t border-slate-200 dark:border-darkmode-400 my-3"></div>
                             <div class="flex justify-between font-semibold mt-2">
                                 <span>Total Tagihan</span>
-                                <span class="text-primary ml-2">Rp
+                                <span class="text-primary ml-2">: Rp
                                     {{ number_format($produksi->total_tagihan, 0, ',', '.') }}</span>
                             </div>
                             <div class="flex justify-between text-sm">
-                                <span class="text-slate-500 mr-2">Total Dibayar</span>
-                                <span>Rp {{ number_format($produksi->total_dibayar, 0, ',', '.') }}</span>
+                                <span class="text-slate-500 w-24">Total Dibayar</span>
+                                <span>: Rp {{ number_format($produksi->total_dibayar, 0, ',', '.') }}</span>
                             </div>
                             <div class="border-t border-slate-200 dark:border-darkmode-400 my-3"></div>
                             <div class="flex justify-between items-center">
-                                <span class="text-sm text-slate-500 mr-2">Sisa Tagihan</span>
+                                <span class="text-sm text-slate-500 w-24">Sisa Tagihan</span>
                                 @if ($produksi->sisa_tagihan == 0)
                                     <span class="text-success font-bold flex items-center gap-1">
                                         <i data-lucide="check-circle" class="w-5 h-5"></i>
@@ -255,7 +255,7 @@
                                     </span>
                                 @else
                                     <span class="text-warning font-bold">
-                                        Rp {{ number_format($produksi->sisa_tagihan, 0, ',', '.') }}
+                                        : Rp {{ number_format($produksi->sisa_tagihan, 0, ',', '.') }}
                                     </span>
                                 @endif
                             </div>

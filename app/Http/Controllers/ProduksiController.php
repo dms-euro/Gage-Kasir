@@ -9,23 +9,18 @@ use App\Models\Pelanggan;
 use App\Models\Piutang;
 use App\Models\Produksi;
 use App\Models\ProfilPerusahaan;
+use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 
 class ProduksiController extends Controller
 {
-    /**
-     * Display a listing of the resource.
-     */
     public function kategoriIndex()
     {
         $kategoris = Kategori::latest()->paginate(25);
         return view('pages.kategori', compact('kategoris'));
     }
 
-    /**
-     * Store a newly created resource in storage.
-     */
     public function kategoriStore(Request $request)
     {
         $request->validate(['nama_kategori' => 'required|unique:kategoris,nama_kategori',]);
@@ -33,9 +28,6 @@ class ProduksiController extends Controller
         return redirect()->route('kategori.index')->with('success', 'Kategori berhasil ditambahkan.');
     }
 
-    /**
-     * Update the specified resource in storage.
-     */
     public function kategoriUpdate(Request $request, string $id)
     {
         $request->validate(['nama_kategori' => 'required']);
@@ -44,9 +36,6 @@ class ProduksiController extends Controller
         return back()->with('success', 'Kategori berhasil diupdate');
     }
 
-    /**
-     * Remove the specified resource from storage.
-     */
     public function kategoriDestroy(string $id)
     {
         $kategori = Kategori::findOrFail($id);
@@ -107,7 +96,7 @@ class ProduksiController extends Controller
     {
         $request->validate([
             'id_produksi' => 'required|string|max:50',
-            'pelanggan_id' => 'required|exists:pelanggans,id', // TAMBAHKAN VALIDASI
+            'pelanggan_id' => 'required|exists:pelanggans,id',
             'kategori_id' => 'required|exists:kategoris,id',
             'deskripsi' => 'required|string|max:255',
             'bahan' => 'nullable|string|max:100',
@@ -129,7 +118,6 @@ class ProduksiController extends Controller
                 'harga' => $request->harga,
             ]);
 
-            // AMBIL DARI REQUEST, BUKAN SESSION
             $pelangganId = $request->pelanggan_id;
 
             return redirect()
@@ -157,9 +145,6 @@ class ProduksiController extends Controller
         return back()->with('success', 'Produksi berhasil dibatalkan');
     }
 
-    /**
-     * Hapus detail item
-     */
     public function destroyDetail($id)
     {
         try {
@@ -167,7 +152,6 @@ class ProduksiController extends Controller
             $pelanggan_id = request('pelanggan_id');
 
             $detail->delete();
-
 
             return redirect()
                 ->route('produksi.create', ['pelanggan_id' => $pelanggan_id])
@@ -177,9 +161,6 @@ class ProduksiController extends Controller
         }
     }
 
-    /**
-     * API untuk edit item
-     */
     public function editDetail($id)
     {
         $detail = DetailProduksi::with('kategori')->findOrFail($id);
@@ -199,9 +180,6 @@ class ProduksiController extends Controller
         ]);
     }
 
-    /**
-     * Update detail item
-     */
     public function updateDetail(Request $request, $id)
     {
         $request->validate([
@@ -236,9 +214,6 @@ class ProduksiController extends Controller
         }
     }
 
-    /**
-     * Finalisasi order
-     */
     public function finalisasi(Request $request)
     {
         $request->validate([
@@ -337,5 +312,80 @@ class ProduksiController extends Controller
             ->firstOrFail();
 
         return view('pages.invoice', compact('Profilperusahaan', 'produksi'));
+    }
+
+    public function exportPdf(Request $request)
+    {
+        $mode = $request->get('mode', 'today');
+
+        $query = Produksi::with(['pelanggan', 'detailProduksi'])
+            ->where('status', true)
+            ->latest('tanggal')
+            ->latest('id_produksi');
+
+        // Filter sesuai mode
+        if ($mode === 'today') {
+            $query->whereDate('tanggal', today());
+            $title = 'Laporan Produksi Hari Ini';
+        } else {
+            $title = 'Laporan Semua Produksi';
+
+            // Filter tanggal jika ada
+            if ($request->filled('start_date')) {
+                $query->whereDate('tanggal', '>=', $request->start_date);
+            }
+            if ($request->filled('end_date')) {
+                $query->whereDate('tanggal', '<=', $request->end_date);
+            }
+
+            // Update title sesuai filter
+            if ($request->filled('start_date') && $request->filled('end_date')) {
+                $title = 'Laporan Produksi Periode ' .
+                    \Carbon\Carbon::parse($request->start_date)->format('d M Y') . ' - ' .
+                    \Carbon\Carbon::parse($request->end_date)->format('d M Y');
+            } elseif ($request->filled('start_date')) {
+                $title = 'Laporan Produksi dari ' . \Carbon\Carbon::parse($request->start_date)->format('d M Y');
+            } elseif ($request->filled('end_date')) {
+                $title = 'Laporan Produksi sampai ' . \Carbon\Carbon::parse($request->end_date)->format('d M Y');
+            }
+        }
+
+        // Search
+        if ($request->filled('search')) {
+            $query->where('id_produksi', 'like', '%' . $request->search . '%');
+        }
+
+        $produksis = $query->get();
+        $profil = ProfilPerusahaan::first();
+
+        $totalOmset = $produksis->sum('total_tagihan');
+        $totalOrder = $produksis->count();
+        $totalLunas = $produksis->where('keterangan', 'LUNAS')->count();
+        $totalUtang = $produksis->where('keterangan', 'UTANG')->count();
+
+        $pdf = Pdf::loadView('pages.produksi_pdf', compact(
+            'produksis',
+            'profil',
+            'title',
+            'totalOmset',
+            'totalOrder',
+            'totalLunas',
+            'totalUtang',
+            'mode',
+            'request'
+        ));
+
+        $pdf->setPaper('A4', 'landscape');
+
+        $filename = 'laporan-produksi';
+        if ($request->filled('start_date')) {
+            $filename .= '-' . $request->start_date;
+        }
+        if ($request->filled('end_date')) {
+            $filename .= '-sampai-' . $request->end_date;
+        }
+        $filename .= '.pdf';
+
+        return $pdf->download($filename);
     }
 }

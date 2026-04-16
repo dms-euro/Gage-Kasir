@@ -14,7 +14,6 @@ class DashboardController extends Controller
      */
     public function index()
     {
-        // Stats Cards
         $orderHariIni = Produksi::whereDate('tanggal', today())
             ->where('status', true)
             ->count();
@@ -27,20 +26,17 @@ class DashboardController extends Controller
 
         $totalPelanggan = Pelanggan::where('status', true)->count();
 
-        // Omset Bulan Ini
         $omsetBulanIni = Produksi::whereMonth('tanggal', now()->month)
             ->whereYear('tanggal', now()->year)
             ->where('status', true)
             ->sum('total_tagihan');
 
-        // Order Terbaru (5)
         $orderTerbaru = Produksi::with('pelanggan')
             ->where('status', true)
             ->latest()
-            ->take(5)
+            ->take(3)
             ->get();
 
-        // Pelanggan dengan Piutang
         $pelangganPiutang = Pelanggan::where('status', true)
             ->whereHas('piutang', function ($q) {
                 $q->where('sisa_tagihan', '>', 0);
@@ -52,7 +48,6 @@ class DashboardController extends Controller
             ->take(5)
             ->get();
 
-        // Chart Data (7 hari terakhir)
         $chartLabels = [];
         $chartData = [];
 

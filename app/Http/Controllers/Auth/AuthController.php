@@ -34,9 +34,7 @@ class AuthController extends Controller
             return redirect()->route('dashboard.index')->with('success', 'Login berhasil.');
         }
 
-        return back()->withErrors([
-            'username' => 'Login gagal, pastikan username dan password benar.',
-        ]);
+        return back()->with('error', 'Maaf Periksa Username dan Password Anda');
     }
 
     /**

@@ -132,12 +132,7 @@ class Produksi extends Model
 
     public function getCanCancelAttribute(): bool
     {
-        if ($this->keterangan === 'LUNAS') {
-            return false;
-        }
-
-        $cicilanCount = $this->detailPiutang()->count();
-        return $cicilanCount <= 1;
+        return $this->keterangan === 'UTANG';
     }
 
     public function getStatusBadgeAttribute(): string

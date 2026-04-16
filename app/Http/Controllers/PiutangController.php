@@ -5,6 +5,8 @@ namespace App\Http\Controllers;
 use App\Models\DetailPiutang;
 use App\Models\Piutang;
 use App\Models\Produksi;
+use App\Models\ProfilPerusahaan;
+use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 
@@ -12,7 +14,7 @@ class PiutangController extends Controller
 {
     public function index(Request $request)
     {
-        $query = Piutang::with(['produksi', 'pelanggan']);
+        $query = Piutang::with(['produksi', 'pelanggan'])->where('sisa_tagihan', '>', 0);
 
         if ($request->status == 'outstanding') {
             $query->where('sisa_tagihan', '>', 0);
@@ -77,5 +79,83 @@ class PiutangController extends Controller
         });
 
         return back()->with('success', 'Pembayaran berhasil.');
+    }
+
+    public function exportPdf(Request $request)
+    {
+        $query = Piutang::with(['produksi', 'pelanggan', 'detailPiutang']);
+
+        // Filter status
+        $statusText = 'Semua Status'; // Default value
+
+        if ($request->status == 'outstanding') {
+            $query->where('sisa_tagihan', '>', 0);
+            $statusText = 'Outstanding (Belum Lunas)';
+        } elseif ($request->status == 'lunas') {
+            $query->where('sisa_tagihan', 0);
+            $statusText = 'Lunas';
+        }
+
+        // Filter tanggal
+        if ($request->filled('start_date')) {
+            $query->whereHas('produksi', function ($q) use ($request) {
+                $q->whereDate('tanggal', '>=', $request->start_date);
+            });
+        }
+        if ($request->filled('end_date')) {
+            $query->whereHas('produksi', function ($q) use ($request) {
+                $q->whereDate('tanggal', '<=', $request->end_date);
+            });
+        }
+
+        // Search
+        if ($request->filled('search')) {
+            $query->where('id_produksi', 'like', '%' . $request->search . '%');
+        }
+
+        $piutangs = $query->latest()->get();
+        $profil = ProfilPerusahaan::first();
+
+        // Summary
+        $totalTagihan = $piutangs->sum('total_tagihan');
+        $totalDibayar = $piutangs->sum('total_terbayar');
+        $totalSisa = $piutangs->sum('sisa_tagihan');
+        $totalOutstanding = $piutangs->where('sisa_tagihan', '>', 0)->count();
+        $totalLunas = $piutangs->where('sisa_tagihan', 0)->count();
+
+        // Title
+        $title = 'Laporan Piutang';
+        if ($request->filled('start_date') && $request->filled('end_date')) {
+            $title .= ' Periode ' . \Carbon\Carbon::parse($request->start_date)->format('d M Y') . ' - ' . \Carbon\Carbon::parse($request->end_date)->format('d M Y');
+        } elseif ($request->filled('start_date')) {
+            $title .= ' dari ' . \Carbon\Carbon::parse($request->start_date)->format('d M Y');
+        } elseif ($request->filled('end_date')) {
+            $title .= ' sampai ' . \Carbon\Carbon::parse($request->end_date)->format('d M Y');
+        }
+
+        $pdf = Pdf::loadView('pages.piutang_pdf', compact(
+            'piutangs',
+            'profil',
+            'title',
+            'totalTagihan',
+            'totalDibayar',
+            'totalSisa',
+            'totalOutstanding',
+            'totalLunas',
+            'statusText'
+        ));
+
+        $pdf->setPaper('A4', 'landscape');
+
+        $filename = 'laporan-piutang';
+        if ($request->filled('start_date')) {
+            $filename .= '-' . $request->start_date;
+        }
+        if ($request->filled('end_date')) {
+            $filename .= '-sampai-' . $request->end_date;
+        }
+        $filename .= '.pdf';
+
+        return $pdf->download($filename);
     }
 }

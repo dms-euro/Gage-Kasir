@@ -64,13 +64,14 @@
             </a>
 
             <ul>
-                <li>
-                    <a href="{{ route('kategori.index') }}" class="side-menu {{ active('kategori.*') }}">
-                        <div class="side-menu__icon"><i data-lucide="activity"></i></div>
-                        <div class="side-menu__title">Kategori</div>
-                    </a>
-                </li>
-
+                @if (auth()->user()->level == 'admin')
+                    <li>
+                        <a href="{{ route('kategori.index') }}" class="side-menu {{ active('kategori.*') }}">
+                            <div class="side-menu__icon"><i data-lucide="activity"></i></div>
+                            <div class="side-menu__title">Kategori</div>
+                        </a>
+                    </li>
+                @endif
                 <li>
                     <a href="{{ route('produksi.index', ['mode' => 'today']) }}"
                         class="side-menu {{ request('mode', 'today') == 'today' ? 'side-menu--active' : '' }}">
@@ -99,7 +100,6 @@
 
         <li class="side-nav__devider my-6"></li>
 
-        {{-- PENGATURAN (ADMIN ONLY) --}}
         @if (auth()->user()->level == 'admin')
             <li>
                 <a href="javascript:;" class="side-menu {{ active('profile-perusahaan.*') || active('user.*') }}">
