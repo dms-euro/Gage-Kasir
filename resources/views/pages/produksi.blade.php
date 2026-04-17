@@ -188,8 +188,7 @@
                                     @if ($produksi->can_cancel)
                                         <button type="button" class="flex items-center text-danger text-sm"
                                             data-tw-toggle="modal" data-tw-target="#delete-confirmation-modal"
-                                            onclick="setDeleteAction('{{ route('produksi.destroy', $produksi->id_produksi) }}', '{{ $produksi->id_produksi }}')"
-                                            title="Cancel Order">
+                                            onclick="setDelete('{{ $produksi->id_produksi }}')" title="Cancel Order">
                                             <i data-lucide="x-circle" class="w-4 h-4"></i>
                                         </button>
                                     @endif
@@ -330,6 +329,8 @@
         </script>
         <script>
             function setDelete(id) {
+                console.log('ID:', id);
+
                 let form = document.getElementById('delete-form');
                 form.action = '/produksi/' + id;
 

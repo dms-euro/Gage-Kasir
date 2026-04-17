@@ -216,50 +216,75 @@
                     </div>
                 </div>
                 <div class="lg:w-1/2 lg:ml-auto">
-                    <div class="bg-slate-50 dark:bg-darkmode-700/50 rounded-lg p-5">
-                        <div class="flex items-center gap-2 text-slate-500 text-sm mb-4">
-                            <i data-lucide="calculator" class="w-4 h-4"></i>
-                            <span class="font-medium uppercase tracking-wide">Ringkasan Biaya</span>
+                    <div class="bg-slate-50 dark:bg-darkmode-700/50 rounded-lg p-6">
+
+                        <div class="text-sm text-slate-500 mb-5 font-semibold uppercase">
+                            Ringkasan
                         </div>
-                        <div class="space-y-2">
-                            <div class="flex justify-between text-sm">
-                                <span class="text-slate-500 w-24">Subtotal Item</span>
-                                <span>: Rp {{ number_format($produksi->subtotal_item, 0, ',', '.') }}</span>
+
+                        <div class="space-y-3 text-sm tabular-nums">
+
+                            <!-- Subtotal -->
+                            <div class="grid grid-cols-2">
+                                <span class="text-slate-500">Subtotal</span>
+                                <span class="text-right font-medium">
+                                    Rp {{ number_format($produksi->subtotal_item, 0, ',', '.') }}
+                                </span>
                             </div>
-                            <div class="flex justify-between text-sm mt-2">
-                                <span class="text-slate-500 w-24">Biaya Design</span>
-                                <span>: Rp {{ number_format($produksi->biaya_design, 0, ',', '.') }}</span>
+
+                            <!-- Design -->
+                            <div class="grid grid-cols-2">
+                                <span class="text-slate-500">Biaya Design</span>
+                                <span class="text-right">
+                                    Rp {{ number_format($produksi->biaya_design, 0, ',', '.') }}
+                                </span>
                             </div>
+
+                            <!-- Diskon -->
                             @if ($produksi->diskon > 0)
-                                <div class="flex justify-between text-sm text-danger mt-2">
-                                    <span>Diskon </span>
-                                    <span>: Rp {{ number_format($produksi->diskon, 0, ',', '.') }}</span>
+                                <div class="grid grid-cols-2 text-red-500">
+                                    <span>Diskon</span>
+                                    <span class="text-right">
+                                        - Rp {{ number_format($produksi->diskon, 0, ',', '.') }}
+                                    </span>
                                 </div>
                             @endif
-                            <div class="border-t border-slate-200 dark:border-darkmode-400 my-3"></div>
-                            <div class="flex justify-between font-semibold mt-2">
+
+                            <div class="border-t my-2"></div>
+
+                            <!-- TOTAL -->
+                            <div class="grid grid-cols-2 text-base font-semibold">
                                 <span>Total Tagihan</span>
-                                <span class="text-primary ml-2">: Rp
-                                    {{ number_format($produksi->total_tagihan, 0, ',', '.') }}</span>
+                                <span class="text-right text-primary">
+                                    Rp {{ number_format($produksi->total_tagihan, 0, ',', '.') }}
+                                </span>
                             </div>
-                            <div class="flex justify-between text-sm">
-                                <span class="text-slate-500 w-24">Total Dibayar</span>
-                                <span>: Rp {{ number_format($produksi->total_dibayar, 0, ',', '.') }}</span>
+
+                            <!-- Dibayar -->
+                            <div class="grid grid-cols-2">
+                                <span class="text-slate-500">Sudah Dibayar</span>
+                                <span class="text-right">
+                                    Rp {{ number_format($produksi->total_dibayar, 0, ',', '.') }}
+                                </span>
                             </div>
-                            <div class="border-t border-slate-200 dark:border-darkmode-400 my-3"></div>
-                            <div class="flex justify-between items-center">
-                                <span class="text-sm text-slate-500 w-24">Sisa Tagihan</span>
+
+                            <div class="border-t my-2"></div>
+
+                            <!-- Sisa -->
+                            <div class="grid grid-cols-2 items-center">
+                                <span class="font-semibolt">Sisa Tagihan</span>
+
                                 @if ($produksi->sisa_tagihan == 0)
-                                    <span class="text-success font-bold flex items-center gap-1">
-                                        <i data-lucide="check-circle" class="w-5 h-5"></i>
+                                    <span class="text-right text-green-600 font-semibold">
                                         LUNAS
                                     </span>
                                 @else
-                                    <span class="text-warning font-bold">
-                                        : Rp {{ number_format($produksi->sisa_tagihan, 0, ',', '.') }}
+                                    <span class="text-right text-orange-500 font-semibold">
+                                        Rp {{ number_format($produksi->sisa_tagihan, 0, ',', '.') }}
                                     </span>
                                 @endif
                             </div>
+
                         </div>
                     </div>
                 </div>

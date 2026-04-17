@@ -64,41 +64,11 @@
         </li>
 
         {{-- PRODUKSI --}}
-        <li class="{{ isOpen(['produksi.*','kategori.*']) ? 'side-menu--active side-menu--open' : '' }}">
-            <a href="javascript:;" class="side-menu {{ isOpen(['produksi.*','kategori.*']) ? 'side-menu--active' : '' }}">
+        <li>
+            <a href="{{ route('produksi.index', ['mode' => 'today']) }}" class="side-menu {{ active('produksi.*') }}">
                 <div class="side-menu__icon"><i data-lucide="shopping-bag"></i></div>
-                <div class="side-menu__title">
-                    Produksi
-                    <div class="side-menu__sub-icon"><i data-lucide="chevron-down"></i></div>
-                </div>
+                <div class="side-menu__title">Produksi</div>
             </a>
-
-            <ul style="{{ isOpen(['produksi.*','kategori.*']) ? 'display:block;' : '' }}">
-                @if (auth()->user()->level == 'admin')
-                    <li>
-                        <a href="{{ route('kategori.index') }}" class="side-menu {{ active('kategori.*') }}">
-                            <div class="side-menu__icon"><i data-lucide="activity"></i></div>
-                            <div class="side-menu__title">Kategori</div>
-                        </a>
-                    </li>
-                @endif
-
-                <li>
-                    <a href="{{ route('produksi.index', ['mode' => 'today']) }}"
-                        class="side-menu {{ request('mode','today') == 'today' ? 'side-menu--active' : '' }}">
-                        <div class="side-menu__icon"><i data-lucide="activity"></i></div>
-                        <div class="side-menu__title">Produksi Hari Ini</div>
-                    </a>
-                </li>
-
-                <li>
-                    <a href="{{ route('produksi.index', ['mode' => 'all']) }}"
-                        class="side-menu {{ request('mode') == 'all' ? 'side-menu--active' : '' }}">
-                        <div class="side-menu__icon"><i data-lucide="activity"></i></div>
-                        <div class="side-menu__title">Semua Produksi</div>
-                    </a>
-                </li>
-            </ul>
         </li>
 
         {{-- PIUTANG --}}
@@ -111,8 +81,9 @@
 
         {{-- PENGATURAN --}}
         @if (auth()->user()->level == 'admin')
-            <li class="{{ isOpen(['profile-perusahaan.*','user.*']) ? 'side-menu--active side-menu--open' : '' }}">
-                <a href="javascript:;" class="side-menu {{ isOpen(['profile-perusahaan.*','user.*']) ? 'side-menu--active' : '' }}">
+            <li class="{{ isOpen(['profile-perusahaan.*', 'user.*']) ? 'side-menu--active side-menu--open' : '' }}">
+                <a href="javascript:;"
+                    class="side-menu {{ isOpen(['profile-perusahaan.*', 'user.*']) ? 'side-menu--active' : '' }}">
                     <div class="side-menu__icon"><i data-lucide="settings"></i></div>
                     <div class="side-menu__title">
                         Pengaturan
@@ -120,7 +91,15 @@
                     </div>
                 </a>
 
-                <ul style="{{ isOpen(['profile-perusahaan.*','user.*']) ? 'display:block;' : '' }}">
+                <ul style="{{ isOpen(['kategori.*', 'profile-perusahaan.*', 'user.*']) ? 'display:block;' : '' }}">
+
+                    <li>
+                        <a href="{{ route('kategori.index') }}" class="side-menu {{ active('kategori.*') }}">
+                            <div class="side-menu__icon"><i data-lucide="activity"></i></div>
+                            <div class="side-menu__title">Kategori</div>
+                        </a>
+                    </li>
+
                     <li>
                         <a href="{{ route('profile-perusahaan.index') }}"
                             class="side-menu {{ active('profile-perusahaan.*') }}">
@@ -130,8 +109,7 @@
                     </li>
 
                     <li>
-                        <a href="{{ route('user.index') }}"
-                            class="side-menu {{ active('user.*') }}">
+                        <a href="{{ route('user.index') }}" class="side-menu {{ active('user.*') }}">
                             <div class="side-menu__icon"><i data-lucide="activity"></i></div>
                             <div class="side-menu__title">Daftar User</div>
                         </a>

@@ -136,14 +136,24 @@ class ProduksiController extends Controller
         $produksi = Produksi::where('id_produksi', $id)->firstOrFail();
 
         if (!$produksi->can_cancel) {
-            return back()->with('error', 'Produksi tidak bisa dibatalkan');
+            return back()->with('error', 'Produksi tidak bisa dibatalkan karena sudah LUNAS atau memiliki cicilan.');
         }
 
-        $produksi->update([
-            'status' => 0
-        ]);
+        DB::transaction(function () use ($produksi) {
+            $produksi->update([
+                'status' => 0
+            ]);
 
-        return back()->with('success', 'Produksi berhasil dibatalkan');
+            if ($produksi->piutang) {
+                $produksi->piutang->delete();
+            }
+
+            if ($produksi->detailPiutang->count() > 0) {
+                $produksi->detailPiutang()->delete();
+            }
+        });
+
+        return back()->with('success', 'Produksi berhasil dibatalkan.');
     }
 
     public function destroyDetail($id)

@@ -131,9 +131,9 @@
                         <div class="col-span-12 sm:col-span-6">
                             <label>Broker</label>
                             <select name="broker" class="form-select">
-                                <option value="Non Broker">Non Broker</option>
-                                <option value="Broker">Broker</option>
-                                <option value="Pajak">Kena Pajak</option>
+                                <option value="non-broker">Non Broker</option>
+                                <option value="broker">Broker</option>
+                                <option value="kenapajak">Kena Pajak</option>
                             </select>
                         </div>
                     </div>

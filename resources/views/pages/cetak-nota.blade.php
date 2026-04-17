@@ -319,11 +319,6 @@
             </tfoot>
         </table>
 
-        {{-- NOTE --}}
-        <div class="note">
-            * Perhatian, mohon barang dicek kembali, komplain lebih dari 1 hari tidak kami layani.
-        </div>
-
         {{-- SUMMARY --}}
         <div class="summary">
             <table class="summary-table">
@@ -361,40 +356,13 @@
         </div>
 
         {{-- PAYMENT INFO --}}
-        <div style="margin: 10px 0; padding: 10px; background: #f8fafc; border-radius: 5px;">
+        <div style=" background: #f8fafc; border-radius: 5px;">
             <strong>Metode Pembayaran:</strong> {{ $produksi->pembayaran }} |
             <strong>Operator:</strong> {{ $produksi->user->nama ?? '-' }}
             @if($Profilperusahaan->no_rekening && $produksi->pembayaran == 'Bank')
                 <br><strong>No. Rekening:</strong> {{ $Profilperusahaan->no_rekening }}
             @endif
         </div>
-
-        {{-- RIWAYAT CICILAN --}}
-        @if($produksi->detailPiutang->count() > 1)
-        <div style="margin: 15px 0;">
-            <strong>Riwayat Pembayaran:</strong>
-            <table style="margin-top: 5px; font-size: 10px;">
-                <thead>
-                    <tr style="background: #e2e8f0;">
-                        <th>Tanggal</th>
-                        <th>Cicilan Ke</th>
-                        <th>Nominal</th>
-                        <th>Metode</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    @foreach($produksi->detailPiutang as $d)
-                    <tr>
-                        <td>{{ \Carbon\Carbon::parse($d->tanggal)->format('d-m-Y') }}</td>
-                        <td class="text-center">{{ $d->cicilan_ke }}</td>
-                        <td class="text-right">Rp {{ number_format($d->nominal, 0, ',', '.') }}</td>
-                        <td>{{ $d->pembayaran }}</td>
-                    </tr>
-                    @endforeach
-                </tbody>
-            </table>
-        </div>
-        @endif
 
         {{-- FOOTER SIGNATURE --}}
         <div class="footer">

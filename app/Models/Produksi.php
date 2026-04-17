@@ -132,7 +132,7 @@ class Produksi extends Model
 
     public function getCanCancelAttribute(): bool
     {
-        return $this->keterangan === 'UTANG';
+        return in_array($this->keterangan, ['UTANG', 'LUNAS']);
     }
 
     public function getStatusBadgeAttribute(): string
