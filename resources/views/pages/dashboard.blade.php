@@ -148,10 +148,9 @@
                 </div>
             </div>
         </div>
-
-        {{-- PELANGGAN DENGAN PIUTANG --}}
-        <div class="col-span-12  mt-5">
-            <div class="intro-y box p-5">
+        {{-- ================= KIRI: PELANGGAN PIUTANG ================= --}}
+        <div class="col-span-12 lg:col-span-4 mt-5">
+            <div class="intro-y box p-5 h-full">
                 <div class="flex items-center border-b border-slate-200/60 pb-3 mb-3">
                     <h3 class="font-medium text-base">
                         <i data-lucide="alert-circle" class="w-5 h-5 mr-2 inline"></i>
@@ -159,6 +158,7 @@
                     </h3>
                     <a href="{{ route('piutang.index') }}" class="ml-auto text-primary text-sm">Lihat Semua</a>
                 </div>
+
                 <div class="overflow-x-auto">
                     <table class="table table-sm">
                         <thead>
@@ -182,7 +182,9 @@
                                 </tr>
                             @empty
                                 <tr>
-                                    <td colspan="2" class="text-center py-3 text-slate-500">Tidak ada piutang</td>
+                                    <td colspan="2" class="text-center py-3 text-slate-500">
+                                        Tidak ada piutang
+                                    </td>
                                 </tr>
                             @endforelse
                         </tbody>
@@ -190,40 +192,174 @@
                 </div>
             </div>
         </div>
-    </div>
-@endsection
 
-@push('scripts')
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <script>
-        document.addEventListener('DOMContentLoaded', function() {
-            // Chart Omset Bulanan
-            const ctx = document.getElementById('omset-chart')?.getContext('2d');
-            if (ctx) {
-                new Chart(ctx, {
-                    type: 'line',
-                    data: {
-                        labels: {!! json_encode($chartLabels) !!},
-                        datasets: [{
-                            label: 'Omset (Rp)',
-                            data: {!! json_encode($chartData) !!},
-                            borderColor: '#1a56db',
-                            backgroundColor: 'rgba(26, 86, 219, 0.1)',
-                            tension: 0.3,
-                            fill: true
-                        }]
-                    },
-                    options: {
-                        responsive: true,
-                        maintainAspectRatio: false,
-                        plugins: {
-                            legend: {
-                                display: false
-                            }
+        {{-- ================= KANAN: GENERAL REPORT ================= --}}
+        <div class="col-span-12 lg:col-span-8 mt-5">
+            <div class="intro-y box p-5 h-full  ">
+                <div class="flex items-center border-b border-slate-200/60 pb-3 mb-3">
+                    <h3 class="font-medium text-base">
+                        <i data-lucide="alert-circle" class="w-5 h-5 mr-2 inline"></i>
+                        Laporan Produksi
+                    </h3>
+                    <a href="{{ route('produksi.index') }}" class="ml-auto text-primary text-sm">Lihat Semua</a>
+                </div>
+                <div class="box grid grid-cols-12">
+
+                    {{-- LEFT PANEL --}}
+                    <div class="col-span-12 lg:col-span-4 px-8 py-12 flex flex-col justify-center">
+                        <i data-lucide="trending-up" class="w-10 h-10 text-primary"></i>
+
+                        <div class="mt-12 text-slate-600">
+                            Total Omset Bulan Ini
+                        </div>
+
+                        <div class="mt-4 text-2xl font-medium">
+                            Rp {{ number_format($omsetBulanIni, 0, ',', '.') }}
+                        </div>
+
+                        <div class="mt-4 text-slate-500 text-xs">
+                            {{ now()->translatedFormat('F Y') }}
+                        </div>
+
+                        <a href="{{ route('produksi.index') }}" class="btn btn-outline-primary rounded-full mt-8">
+                            Buat Order Baru
+                        </a>
+                    </div>
+
+                    {{-- RIGHT PANEL --}}
+                    <div class="col-span-12 lg:col-span-8 p-8 border-t lg:border-t-0 lg:border-l border-dashed">
+
+                        {{-- TAB --}}
+                        <ul class="nav nav-pills w-60 mx-auto mb-8">
+                            <li class="nav-item flex-1">
+                                <button class="nav-link w-full active" data-tab-target="#harian">
+                                    Harian
+                                </button>
+                            </li>
+
+                            <li class="nav-item flex-1">
+                                <button class="nav-link w-full" data-tab-target="#bulanan">
+                                    Bulanan
+                                </button>
+                            </li>
+                        </ul>
+
+                        <div class="tab-content">
+
+                            {{-- ================= HARIAN ================= --}}
+                            <div class="tab-pane active grid grid-cols-12 gap-6" id="harian">
+
+                                <div class="col-span-6 md:col-span-4">
+                                    <div class="text-slate-500">Order Hari Ini</div>
+                                    <div class="font-medium">{{ $orderHariIni }}</div>
+                                </div>
+
+                                <div class="col-span-6 md:col-span-4">
+                                    <div class="text-slate-500">Omset Hari Ini</div>
+                                    <div class="font-medium text-success">
+                                        Rp {{ number_format($omsetHariIni, 0, ',', '.') }}
+                                    </div>
+                                </div>
+
+                                <div class="col-span-6 md:col-span-4">
+                                    <div class="text-slate-500">Total Piutang</div>
+                                    <div class="font-medium text-warning">
+                                        Rp {{ number_format($totalPiutang, 0, ',', '.') }}
+                                    </div>
+                                </div>
+
+                                @foreach ($brokerList as $broker)
+                                    <div class="col-span-6 md:col-span-4">
+                                        <div class="text-slate-500">{{ $broker }}</div>
+                                        <div>{{ $orderPerBrokerHarian[$broker] ?? 0 }} order</div>
+                                    </div>
+                                @endforeach
+                            </div>
+
+                            {{-- ================= BULANAN ================= --}}
+                            <div class="tab-pane hidden grid grid-cols-12 gap-6" id="bulanan">
+
+                                <div class="col-span-6 md:col-span-4">
+                                    <div class="text-slate-500">Order Bulan Ini</div>
+                                    <div class="font-medium">
+                                        {{ array_sum($orderPerBrokerBulanan) }}
+                                    </div>
+                                </div>
+
+                                <div class="col-span-6 md:col-span-4">
+                                    <div class="text-slate-500">Omset Bulan Ini</div>
+                                    <div class="font-medium text-success">
+                                        Rp {{ number_format($omsetBulanIni, 0, ',', '.') }}
+                                    </div>
+                                </div>
+
+                                <div class="col-span-6 md:col-span-4">
+                                    <div class="text-slate-500">Total Piutang</div>
+                                    <div class="font-medium text-warning">
+                                        Rp {{ number_format($totalPiutang, 0, ',', '.') }}
+                                    </div>
+                                </div>
+
+                                @foreach ($brokerList as $broker)
+                                    <div class="col-span-6 md:col-span-4">
+                                        <div class="text-slate-500">{{ $broker }}</div>
+                                        <div>{{ $orderPerBrokerBulanan[$broker] ?? 0 }} order</div>
+                                    </div>
+                                @endforeach
+
+                            </div>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+        </div>
+    </div>
+    @push('scripts')
+        <script>
+            document.addEventListener('DOMContentLoaded', function() {
+                // Ambil semua tab button dalam box laporan produksi
+                const tabContainer = document.querySelector('.intro-y.box .box.grid');
+                if (!tabContainer) return;
+
+                const buttons = tabContainer.querySelectorAll('[data-tab-target]');
+                const contents = tabContainer.querySelectorAll('.tab-pane');
+
+                buttons.forEach(btn => {
+                    btn.addEventListener('click', function(e) {
+                        e.preventDefault();
+
+                        // Hapus class active dari semua button
+                        buttons.forEach(b => b.classList.remove('active'));
+
+                        // Sembunyikan semua tab content
+                        contents.forEach(c => {
+                            c.classList.add('hidden');
+                            c.classList.remove('active');
+                        });
+
+                        // Aktifkan button yang diklik
+                        this.classList.add('active');
+
+                        // Tampilkan target content
+                        const targetId = this.getAttribute('data-tab-target');
+                        const targetContent = document.querySelector(targetId);
+                        if (targetContent) {
+                            targetContent.classList.remove('hidden');
+                            targetContent.classList.add('active');
                         }
-                    }
+                    });
                 });
-            }
-        });
-    </script>
-@endpush
+
+                // Pastikan tab Harian aktif saat load
+                const activeContent = document.querySelector('#harian');
+                const activeButton = document.querySelector('[data-tab-target="#harian"]');
+                if (activeContent && activeButton) {
+                    activeContent.classList.remove('hidden');
+                    activeContent.classList.add('active');
+                    activeButton.classList.add('active');
+                }
+            });
+        </script>
+    @endpush
+@endsection
