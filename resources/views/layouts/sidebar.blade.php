@@ -81,6 +81,13 @@
 
         {{-- PENGATURAN --}}
         @if (auth()->user()->level == 'admin')
+            <li>
+                <a href="{{ route('kas.index') }}"
+                    class="side-menu {{ request()->routeIs('kas.*') ? 'side-menu--active' : '' }}">
+                    <div class="side-menu__icon"><i data-lucide="book-open"></i></div>
+                    <div class="side-menu__title">Kas Buku</div>
+                </a>
+            </li>
             <li class="{{ isOpen(['profile-perusahaan.*', 'user.*']) ? 'side-menu--active side-menu--open' : '' }}">
                 <a href="javascript:;"
                     class="side-menu {{ isOpen(['profile-perusahaan.*', 'user.*']) ? 'side-menu--active' : '' }}">

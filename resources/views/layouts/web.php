@@ -55,6 +55,6 @@ Route::middleware('auth')->group(function () {
     Route::get('/kas-buku', [KasBukuController::class, 'index'])->name('kas.index');
     Route::post('/kas-buku', [KasBukuController::class, 'store'])->name('kas.store');
     Route::delete('/kas-buku/{id}', [KasBukuController::class, 'destroy'])->name('kas.destroy');
-    Route::get('/kas-buku/export', [KasBukuController   ::class, 'export'])->name('kas.export');
+    Route::get('/kas-buku/export', [KasBukuController::class, 'export'])->name('kas.export');
     Route::post('/logout', [AuthController::class, 'logout'])->name('logout');
 });

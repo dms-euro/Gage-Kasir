@@ -316,6 +316,49 @@
         </div>
     </div>
     @push('scripts')
+        <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+        <script>
+            (function() {
+                const ctx = document.getElementById('omset-chart')?.getContext('2d');
+                if (!ctx) {
+                    console.error('Canvas #omset-chart not found!');
+                    return;
+                }
+
+                new Chart(ctx, {
+                    type: 'line',
+                    data: {
+                        labels: {!! json_encode($chartLabels) !!},
+                        datasets: [{
+                            label: 'Omset (Rp)',
+                            data: {!! json_encode($chartData) !!},
+                            borderColor: '#1a56db',
+                            backgroundColor: 'rgba(26, 86, 219, 0.1)',
+                            borderWidth: 2,
+                            tension: 0.3,
+                            fill: true
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: {
+                            legend: {
+                                display: false
+                            }
+                        },
+                        scales: {
+                            y: {
+                                beginAtZero: true,
+                                ticks: {
+                                    callback: (val) => 'Rp ' + val.toLocaleString('id-ID')
+                                }
+                            }
+                        }
+                    }
+                });
+            })();
+        </script>
         <script>
             document.addEventListener('DOMContentLoaded', function() {
                 // Ambil semua tab button dalam box laporan produksi

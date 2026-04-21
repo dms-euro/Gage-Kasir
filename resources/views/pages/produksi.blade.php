@@ -5,15 +5,26 @@
 @section('content')
     <div>
         <h2 class="intro-y text-lg font-medium mt-10">
-            Produksi Hari Ini
+            Produksi
         </h2>
 
         <div class="grid grid-cols-12 gap-6 mt-5">
             <div class="intro-y col-span-12 flex flex-wrap xl:flex-nowrap items-center mt-2">
-                <div class="w-full xl:w-auto flex items-center mt-3 xl:mt-0">
+                <div class="w-full xl:w-auto flex items-center mt-3 xl:mt-0 gap-2">
+                    {{-- Order Baru --}}
                     <button class="btn btn-primary shadow-md mr-2" data-tw-toggle="modal" data-tw-target="#modal-produksi">
                         <i data-lucide="shopping-bag" class="w-4 h-4 mr-2"></i>
                         Order Baru
+                    </button>
+
+                    {{-- Filter --}}
+                    <button class="btn btn-outline-secondary shadow-md mr-2" data-tw-toggle="modal"
+                        data-tw-target="#modal-filter">
+                        <i data-lucide="filter" class="w-4 h-4 mr-2"></i>
+                        Filter
+                        @if (request('start_date') || request('end_date') || request('broker') || request('status_filter'))
+                            <span class="ml-1 w-2 h-2 bg-primary rounded-full inline-block"></span>
+                        @endif
                     </button>
                 </div>
 
@@ -23,8 +34,15 @@
                 </div>
 
                 <div class="flex w-full sm:w-auto mt-3 xl:mt-0 gap-2">
+                    {{-- Search --}}
                     <div class="w-56 relative text-slate-500">
                         <form action="{{ route('produksi.index') }}" method="GET" id="search-form">
+                            {{-- Keep filter values --}}
+                            <input type="hidden" name="start_date" value="{{ request('start_date') }}">
+                            <input type="hidden" name="end_date" value="{{ request('end_date') }}">
+                            <input type="hidden" name="broker" value="{{ request('broker') }}">
+                            <input type="hidden" name="status_filter" value="{{ request('status_filter') }}">
+
                             <input type="text" name="search" class="form-control w-56 box pr-10"
                                 placeholder="Cari nota..." value="{{ request('search') }}">
                             <button type="submit" class="absolute my-auto inset-y-0 right-0 mr-3">
@@ -32,88 +50,12 @@
                             </button>
                         </form>
                     </div>
-                    <div class="flex w-full sm:w-auto mt-3 xl:mt-0 gap-2">
-                        {{-- MODAL EXPORT PDF --}}
-                        <button type="button" class="btn btn-outline-primary shadow-md" data-tw-toggle="modal"
-                            data-tw-target="#export-modal">
-                            <i data-lucide="file-text" class="w-4 h-4 mr-2"></i> Export PDF
-                        </button>
-                        <div id="export-modal" class="modal" tabindex="-1" aria-hidden="true">
-                            <div class="modal-dialog">
-                                <div class="modal-content">
-                                    <div class="modal-header">
-                                        <h2 class="font-medium text-base mr-auto">
-                                            <i data-lucide="file-text" class="w-5 h-5 mr-2 inline text-primary"></i>
-                                            Export PDF
-                                        </h2>
-                                        <button type="button" data-tw-dismiss="modal"
-                                            class="text-slate-400 hover:text-slate-600">
-                                            <i data-lucide="x" class="w-5 h-5"></i>
-                                        </button>
-                                    </div>
 
-                                    <div class="modal-body">
-                                        <form id="export-form" action="{{ route('produksi.export-pdf') }}" method="GET">
-                                            {{-- Bawa parameter yang ada --}}
-                                            <input type="hidden" name="mode" value="{{ request('mode', 'today') }}">
-                                            <input type="hidden" name="search" value="{{ request('search') }}">
-
-                                            <div class="mb-4">
-                                                <label class="form-label font-medium">Pilih Rentang Tanggal</label>
-                                                <p class="text-slate-500 text-xs mb-3">
-                                                    Kosongkan jika ingin export semua data
-                                                </p>
-                                            </div>
-
-                                            <div class="grid grid-cols-2 gap-4">
-                                                <div>
-                                                    <label class="form-label text-xs">Tanggal Mulai</label>
-                                                    <input type="date" name="start_date" id="export_start_date"
-                                                        class="form-control" value="{{ request('start_date') }}">
-                                                </div>
-                                                <div>
-                                                    <label class="form-label text-xs">Tanggal Akhir</label>
-                                                    <input type="date" name="end_date" id="export_end_date"
-                                                        class="form-control" value="{{ request('end_date') }}">
-                                                </div>
-                                            </div>
-
-                                            <div class="mt-4 p-3 bg-slate-50 rounded-lg">
-                                                <div class="flex items-center gap-2 text-sm">
-                                                    <i data-lucide="info" class="w-4 h-4 text-primary"></i>
-                                                    <span class="text-slate-600">Data yang akan diexport:</span>
-                                                </div>
-                                                <div class="mt-2 text-xs text-slate-500">
-                                                    <span id="export-info">
-                                                        @if (request('mode') == 'today')
-                                                            Data produksi hari ini
-                                                        @else
-                                                            @if (request('start_date') && request('end_date'))
-                                                                Periode: {{ request('start_date') }} s/d
-                                                                {{ request('end_date') }}
-                                                            @else
-                                                                Semua data produksi
-                                                            @endif
-                                                        @endif
-                                                    </span>
-                                                </div>
-                                            </div>
-                                        </form>
-                                    </div>
-
-                                    <div class="modal-footer">
-                                        <button type="button" data-tw-dismiss="modal"
-                                            class="btn btn-outline-secondary w-24">
-                                            Batal
-                                        </button>
-                                        <button type="button" onclick="submitExport()" class="btn btn-primary w-32">
-                                            <i data-lucide="download" class="w-4 h-4 mr-2"></i> Export
-                                        </button>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
+                    {{-- Export PDF --}}
+                    <button type="button" class="btn btn-outline-primary shadow-md" data-tw-toggle="modal"
+                        data-tw-target="#export-modal">
+                        <i data-lucide="file-text" class="w-4 h-4 mr-2"></i> Export PDF
+                    </button>
                 </div>
             </div>
         </div>
@@ -276,7 +218,7 @@
             </div>
         </div>
     </div>
-
+    {{-- Modal Delete --}}
     <div id="delete-confirmation-modal" class="modal" tabindex="-1">
         <div class="modal-dialog">
             <div class="modal-content">
@@ -310,6 +252,175 @@
             </div>
         </div>
     </div>
+    {{-- MODAL EXPORT PDF --}}
+    <div id="export-modal" class="modal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h2 class="font-medium text-base mr-auto">
+                        <i data-lucide="file-text" class="w-5 h-5 mr-2 inline text-primary"></i>
+                        Export PDF
+                    </h2>
+                    <button type="button" data-tw-dismiss="modal" class="text-slate-400 hover:text-slate-600">
+                        <i data-lucide="x" class="w-5 h-5"></i>
+                    </button>
+                </div>
+
+                <div class="modal-body">
+                    <form id="export-form" action="{{ route('produksi.export-pdf') }}" method="GET">
+                        {{-- Bawa parameter filter yang ada --}}
+                        <input type="hidden" name="search" value="{{ request('search') }}">
+                        <input type="hidden" name="start_date" value="{{ request('start_date') }}">
+                        <input type="hidden" name="end_date" value="{{ request('end_date') }}">
+                        <input type="hidden" name="broker" value="{{ request('broker') }}">
+                        <input type="hidden" name="status_filter" value="{{ request('status_filter') }}">
+
+                        <div class="mb-4">
+                            <label class="form-label font-medium">Pilih Rentang Tanggal</label>
+                            <p class="text-slate-500 text-xs mb-3">
+                                Kosongkan jika ingin export sesuai filter aktif
+                            </p>
+                        </div>
+
+                        <div class="grid grid-cols-2 gap-4">
+                            <div>
+                                <label class="form-label text-xs">Tanggal Mulai</label>
+                                <input type="date" name="export_start_date" id="export_start_date"
+                                    class="form-control" value="{{ request('start_date') }}">
+                            </div>
+                            <div>
+                                <label class="form-label text-xs">Tanggal Akhir</label>
+                                <input type="date" name="export_end_date" id="export_end_date" class="form-control"
+                                    value="{{ request('end_date') }}">
+                            </div>
+                        </div>
+
+                        <div class="mt-4 p-3 bg-slate-50 rounded-lg">
+                            <div class="flex items-center gap-2 text-sm">
+                                <i data-lucide="info" class="w-4 h-4 text-primary"></i>
+                                <span class="text-slate-600">Data yang akan diexport:</span>
+                            </div>
+                            <div class="mt-2 text-xs text-slate-500">
+                                <span id="export-info">
+                                    @if (request('start_date') && request('end_date'))
+                                        Periode: {{ request('start_date') }} s/d {{ request('end_date') }}
+                                    @else
+                                        Sesuai filter aktif
+                                    @endif
+                                    <br>
+                                    Jenis: {{ request('broker') ?? 'Semua' }} |
+                                    Status: {{ request('status_filter') ?? 'Semua' }}
+                                </span>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+
+                <div class="modal-footer">
+                    <button type="button" data-tw-dismiss="modal" class="btn btn-outline-secondary w-24">
+                        Batal
+                    </button>
+                    <button type="button" onclick="submitExport()" class="btn btn-primary w-32">
+                        <i data-lucide="download" class="w-4 h-4 mr-2"></i> Export
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+    {{-- MODAL FILTER --}}
+    <div id="modal-filter" class="modal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h2 class="font-medium text-base mr-auto">
+                        <i data-lucide="filter" class="w-5 h-5 mr-2 inline text-primary"></i>
+                        Filter Produksi
+                    </h2>
+                    <button type="button" data-tw-dismiss="modal" class="text-slate-400 hover:text-slate-600">
+                        <i data-lucide="x" class="w-5 h-5"></i>
+                    </button>
+                </div>
+
+                <div class="modal-body">
+                    <form id="filter-form" action="{{ route('produksi.index') }}" method="GET">
+                        <input type="hidden" name="search" value="{{ request('search') }}">
+
+                        <div class="mb-4">
+                            <label class="form-label font-medium">Rentang Tanggal</label>
+                            <div class="grid grid-cols-2 gap-3">
+                                <div>
+                                    <label class="form-label text-xs">Tanggal Mulai</label>
+                                    <input type="date" name="start_date" class="form-control"
+                                        value="{{ request('start_date') }}">
+                                </div>
+                                <div>
+                                    <label class="form-label text-xs">Tanggal Akhir</label>
+                                    <input type="date" name="end_date" class="form-control"
+                                        value="{{ request('end_date') }}">
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="mb-4">
+                            <label class="form-label font-medium">Jenis Pelanggan</label>
+                            <select name="broker" class="form-select">
+                                <option value="">Semua Jenis</option>
+                                <option value="broker" {{ request('broker') == 'broker' ? 'selected' : '' }}>Broker
+                                </option>
+                                <option value="non-broker" {{ request('broker') == 'non-broker' ? 'selected' : '' }}>Non
+                                    Broker</option>
+                                <option value="kenapajak" {{ request('broker') == 'kenapajak' ? 'selected' : '' }}>Kena
+                                    Pajak</option>
+                                <option value="CSR" {{ request('broker') == 'CSR' ? 'selected' : '' }}>CSR</option>
+                            </select>
+                        </div>
+
+                        <div class="mb-4">
+                            <label class="form-label font-medium">Status Pembayaran</label>
+                            <select name="status_filter" class="form-select">
+                                <option value="">Semua Status</option>
+                                <option value="LUNAS" {{ request('status_filter') == 'LUNAS' ? 'selected' : '' }}>LUNAS
+                                </option>
+                                <option value="UTANG" {{ request('status_filter') == 'UTANG' ? 'selected' : '' }}>UTANG
+                                </option>
+                            </select>
+                        </div>
+
+                        <div class="mt-4 p-3 bg-slate-50 rounded-lg">
+                            <div class="flex items-center gap-2 text-sm">
+                                <i data-lucide="info" class="w-4 h-4 text-primary"></i>
+                                <span class="text-slate-600">Filter Aktif:</span>
+                            </div>
+                            <div class="mt-2 text-xs text-slate-500" id="filter-info">
+                                @if (request('start_date') && request('end_date'))
+                                    Periode: {{ request('start_date') }} s/d {{ request('end_date') }}
+                                @elseif(request('start_date'))
+                                    Dari: {{ request('start_date') }}
+                                @elseif(request('end_date'))
+                                    Sampai: {{ request('end_date') }}
+                                @else
+                                    Semua tanggal
+                                @endif
+                                <br>
+                                Jenis: {{ request('broker') ?? 'Semua' }} |
+                                Status: {{ request('status_filter') ?? 'Semua' }}
+                            </div>
+                        </div>
+                    </form>
+                </div>
+
+                <div class="modal-footer">
+                    <a href="{{ route('produksi.index') }}" class="btn btn-outline-secondary">
+                        Reset Filter
+                    </a>
+                    <button type="button" onclick="document.getElementById('filter-form').submit()"
+                        class="btn btn-primary">
+                        <i data-lucide="search" class="w-4 h-4 mr-2"></i> Terapkan Filter
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
     @push('scripts')
         <script>
             // Search pelanggan di modal
@@ -326,20 +437,23 @@
                     }
                 });
             });
-        </script>
-        <script>
-            function setDelete(id) {
-                console.log('ID:', id);
 
+            // Set delete action
+            function setDelete(id) {
                 let form = document.getElementById('delete-form');
                 form.action = '/produksi/' + id;
 
                 document.getElementById('delete-text').innerText =
-                    'Order #' + id + ' akan dibatalkan (tidak dihapus).';
+                    'Order #' + id + ' akan dibatalkan.';
             }
-        </script>
-        <script>
-            // Update info export saat tanggal berubah
+
+            // Submit export
+            function submitExport() {
+                let form = document.getElementById('export-form');
+                form.submit();
+            }
+
+            // Update info export
             document.getElementById('export_start_date')?.addEventListener('change', updateExportInfo);
             document.getElementById('export_end_date')?.addEventListener('change', updateExportInfo);
 
@@ -348,30 +462,22 @@
                 let endDate = document.getElementById('export_end_date')?.value;
                 let infoEl = document.getElementById('export-info');
 
+                let broker = '{{ request('broker') ?? 'Semua' }}';
+                let status = '{{ request('status_filter') ?? 'Semua' }}';
+
+                let info = '';
                 if (startDate && endDate) {
-                    infoEl.innerText = `Periode: ${startDate} s/d ${endDate}`;
+                    info = `Periode: ${startDate} s/d ${endDate}\n`;
                 } else if (startDate) {
-                    infoEl.innerText = `Dari tanggal: ${startDate}`;
+                    info = `Dari: ${startDate}\n`;
                 } else if (endDate) {
-                    infoEl.innerText = `Sampai tanggal: ${endDate}`;
+                    info = `Sampai: ${endDate}\n`;
                 } else {
-                    infoEl.innerText = 'Semua data produksi';
+                    info = `Sesuai filter aktif\n`;
                 }
-            }
+                info += `Jenis: ${broker} | Status: ${status}`;
 
-            // Submit export
-            function submitExport() {
-                let form = document.getElementById('export-form');
-
-                // Update mode if needed
-                let startDate = document.getElementById('export_start_date')?.value;
-                let endDate = document.getElementById('export_end_date')?.value;
-
-                if (startDate || endDate) {
-                    form.querySelector('input[name="mode"]').value = 'all';
-                }
-
-                form.submit();
+                infoEl.innerText = info;
             }
         </script>
     @endpush

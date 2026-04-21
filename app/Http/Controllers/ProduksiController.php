@@ -46,24 +46,43 @@ class ProduksiController extends Controller
 
     public function index(Request $request)
     {
-        $mode = $request->get('mode', 'today');
-
         $query = Produksi::with(['pelanggan', 'detailProduksi'])
-            ->where('status', true)
-            ->latest('tanggal')
-            ->latest('id_produksi');
+            ->where('produksis.status', true);
 
-        if ($request->filled('search')) {
-            $query->where('id_produksi', 'like', '%' . $request->search . '%');
+        // Filter tanggal
+        if ($request->filled('start_date')) {
+            $query->whereDate('produksis.tanggal', '>=', $request->start_date);
+        }
+        if ($request->filled('end_date')) {
+            $query->whereDate('produksis.tanggal', '<=', $request->end_date);
         }
 
-        $produksis = $query->paginate(15);
+        // Filter jenis pelanggan (broker)
+        if ($request->filled('broker')) {
+            $query->whereHas('pelanggan', function ($q) use ($request) {
+                $q->where('broker', $request->broker);
+            });
+        }
+
+        // Filter status (LUNAS/UTANG)
+        if ($request->filled('status_filter')) {
+            $query->where('produksis.keterangan', $request->status_filter);
+        }
+
+        // Search by nota
+        if ($request->filled('search')) {
+            $query->where('produksis.id_produksi', 'like', '%' . $request->search . '%');
+        }
+
+        $produksis = $query->latest('produksis.tanggal')
+            ->latest('produksis.id_produksi')
+            ->paginate(15);
 
         $pelanggans = Pelanggan::where('status', true)
             ->orderBy('nama')
             ->get();
 
-        return view('pages.produksi', compact('produksis', 'pelanggans', 'mode',));
+        return view('pages.produksi', compact('produksis', 'pelanggans'));
     }
 
     public function create(Request $request)

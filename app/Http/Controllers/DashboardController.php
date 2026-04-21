@@ -48,7 +48,7 @@ class DashboardController extends Controller
             $chartData[] = Produksi::whereDate('tanggal', $date)->where('status', true)->sum('total_tagihan');
         }
 
-        $brokerList = ['Broker', 'Non Broker', 'Kena Pajak', 'CSR'];
+        $brokerList = ['broker', 'non-broker', 'kenapajak', 'CSR'];
 
         // Order per broker HARIAN - PERBAIKAN: spesifikkan tabel untuk status
         $orderPerBrokerHarian = Produksi::whereDate('produksis.tanggal', today())
