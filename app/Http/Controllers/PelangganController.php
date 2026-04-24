@@ -5,7 +5,9 @@ namespace App\Http\Controllers;
 use App\Models\Pelanggan;
 use App\Models\Piutang;
 use App\Models\Produksi;
+use App\Models\JenisPelanggan;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 
 class PelangganController extends Controller
 {
@@ -14,9 +16,9 @@ class PelangganController extends Controller
      */
     public function index(Request $request)
     {
-        $pelanggans = Pelanggan::query()
-            ->when($request->broker, function ($q) use ($request) {
-                $q->broker($request->broker);
+        $pelanggans = Pelanggan::with('jenisPelanggan')
+            ->when($request->jenis_pelanggan_id, function ($q) use ($request) {
+                $q->where('jenis_pelanggan_id', $request->jenis_pelanggan_id);
             })
             ->when($request->search, function ($q) use ($request) {
                 $q->where(function ($sub) use ($request) {
@@ -26,16 +28,35 @@ class PelangganController extends Controller
                         ->orWhere('id_pelanggan', 'like', "%{$request->search}%");
                 });
             })
+            ->when($request->status !== null, function ($q) use ($request) {
+                $q->where('status', $request->status);
+            })
             ->latest()
             ->paginate(10)
             ->withQueryString();
 
+        $jenisPelanggans = JenisPelanggan::orderBy('nama_jenis')->get();
+
+        // Generate preview ID untuk form tambah
         $lastId = Pelanggan::max('id');
         $nextNumber = $lastId ? $lastId + 1 : 1;
+        $previewId = 'PEL-' . str_pad($nextNumber, 5, '0', STR_PAD_LEFT);
 
-        $previewId = 'PLG-' . str_pad($nextNumber, 4, '0', STR_PAD_LEFT);
+        return view('pages.pelanggan', compact('pelanggans', 'previewId', 'jenisPelanggans'));
+    }
 
-        return view('pages.pelanggan', compact('pelanggans', 'previewId'));
+    /**
+     * Show the form for creating a new resource.
+     */
+    public function create()
+    {
+        $jenisPelanggans = JenisPelanggan::get();
+
+        $lastId = Pelanggan::max('id');
+        $nextNumber = $lastId ? $lastId + 1 : 1;
+        $previewId = 'PEL-' . str_pad($nextNumber, 5, '0', STR_PAD_LEFT);
+
+        return view('pages.pelanggan-form', compact('jenisPelanggans', 'previewId'));
     }
 
     /**
@@ -44,32 +65,77 @@ class PelangganController extends Controller
     public function store(Request $request)
     {
         $request->validate([
-            'nama' => 'required',
-            'cv' => 'required',
-            'alamat' => 'required',
-            'no_hp' => 'required',
-            'broker' => 'required',
+            'jenis_pelanggan_id' => 'required|exists:jenis_pelanggans,id',
+            'nama' => 'required|string|max:50',
+            'cv' => 'nullable|string|max:50',
+            'alamat' => 'required|string',
+            'no_hp' => 'required|string|max:20',
         ]);
 
-        Pelanggan::create([
+        try {
+            DB::beginTransaction();
 
-            'nama' => $request->nama,
-            'cv' => $request->cv,
-            'alamat' => $request->alamat,
-            'no_hp' => $request->no_hp,
-            'broker' => $request->broker,
-            'status' => 1
-        ]);
+            // Generate ID Pelanggan otomatis
+            $lastId = Pelanggan::max('id');
+            $nextNumber = $lastId ? $lastId + 1 : 1;
+            $idPelanggan = 'PEL-' . str_pad($nextNumber, 5, '0', STR_PAD_LEFT);
 
-        return redirect()->route('pelanggan.index', ['broker' => $request->broker])->with('success', 'Pelanggan berhasil ditambahkan');
+            Pelanggan::create([
+                'id_pelanggan' => $idPelanggan,
+                'jenis_pelanggan_id' => $request->jenis_pelanggan_id,
+                'nama' => $request->nama,
+                'cv' => $request->cv ?? '',
+                'alamat' => $request->alamat,
+                'no_hp' => $request->no_hp,
+                'status' => 1
+            ]);
+
+            DB::commit();
+
+            return redirect()
+                ->route('pelanggan.index')
+                ->with('success', 'Pelanggan berhasil ditambahkan');
+        } catch (\Exception $e) {
+            DB::rollBack();
+            return back()
+                ->withInput()
+                ->with('error', 'Gagal menambahkan pelanggan: ' . $e->getMessage());
+        }
     }
 
     /**
-     * Display the specified resource.
+     * Display the specified resource (Detail Pelanggan).
+     */
+    public function show($id)
+    {
+        $pelanggan = Pelanggan::with('jenisPelanggan')->findOrFail($id);
+
+        // Data produksi terakhir
+        $lastProduksi = Produksi::where('pelanggan_id', $id)
+            ->where('status', true)
+            ->latest('tanggal')
+            ->first();
+
+        // Summary data
+        $totalOrder = Produksi::where('pelanggan_id', $id)->where('status', true)->count();
+        $totalTransaksi = Produksi::where('pelanggan_id', $id)->where('status', true)->sum('total_tagihan');
+        $totalPiutang = Piutang::where('pelanggan_id', $id)->where('sisa_tagihan', '>', 0)->sum('sisa_tagihan');
+
+        return view('pages.pelanggan_detail', compact(
+            'pelanggan',
+            'lastProduksi',
+            'totalOrder',
+            'totalTransaksi',
+            'totalPiutang'
+        ));
+    }
+
+    /**
+     * Display produksi history for specific pelanggan.
      */
     public function produksi(Request $request, $id)
     {
-        $pelanggan = Pelanggan::findOrFail($id);
+        $pelanggan = Pelanggan::with('jenisPelanggan')->findOrFail($id);
 
         $query = Produksi::with(['detailProduksi', 'piutang'])
             ->where('pelanggan_id', $id)
@@ -92,61 +158,129 @@ class PelangganController extends Controller
         $totalOrder = Produksi::where('pelanggan_id', $id)->where('status', true)->count();
         $totalTransaksi = Produksi::where('pelanggan_id', $id)->where('status', true)->sum('total_tagihan');
         $totalPiutang = Piutang::where('pelanggan_id', $id)->where('sisa_tagihan', '>', 0)->sum('sisa_tagihan');
+        $totalLunas = Produksi::where('pelanggan_id', $id)->where('status', true)->where('keterangan', 'LUNAS')->count();
+        $totalUtang = Produksi::where('pelanggan_id', $id)->where('status', true)->where('keterangan', 'UTANG')->count();
 
         return view('pages.pelanggan_produksi', compact(
             'pelanggan',
             'produksis',
             'totalOrder',
             'totalTransaksi',
-            'totalPiutang'
+            'totalPiutang',
+            'totalLunas',
+            'totalUtang'
         ));
     }
 
     /**
      * Show the form for editing the specified resource.
      */
-    public function edit(string $id)
+    public function edit($id)
     {
-        //
+        $pelanggan = Pelanggan::with('jenisPelanggan')->findOrFail($id);
+        $jenisPelanggans = JenisPelanggan::get();
+
+        return view('pages.pelanggan-form', compact('pelanggan', 'jenisPelanggans'));
     }
 
     /**
      * Update the specified resource in storage.
      */
-    public function update(Request $request, string $id)
+    public function update(Request $request, $id)
     {
         $request->validate([
-            'nama' => 'required',
-            'cv' => 'required',
-            'alamat' => 'required',
-            'no_hp' => 'required',
-            'broker' => 'required',
+            'jenis_pelanggan_id' => 'required|exists:jenis_pelanggans,id',
+            'nama' => 'required|string|max:50',
+            'cv' => 'nullable|string|max:50',
+            'alamat' => 'required|string',
+            'no_hp' => 'required|string|max:20',
         ]);
 
-        $pelanggan = Pelanggan::findOrFail($id);
+        try {
+            $pelanggan = Pelanggan::findOrFail($id);
 
-        $pelanggan->update([
-            'nama' => $request->nama,
-            'cv' => $request->cv,
-            'alamat' => $request->alamat,
-            'no_hp' => $request->no_hp,
-            'broker' => $request->broker,
-        ]);
+            $pelanggan->update([
+                'jenis_pelanggan_id' => $request->jenis_pelanggan_id,
+                'nama' => $request->nama,
+                'cv' => $request->cv ?? '',
+                'alamat' => $request->alamat,
+                'no_hp' => $request->no_hp,
+            ]);
 
-        return back()->with('success', 'Data berhasil diupdate');
+            return redirect()
+                ->route('pelanggan.index')
+                ->with('success', 'Data pelanggan berhasil diupdate');
+        } catch (\Exception $e) {
+            return back()
+                ->withInput()
+                ->with('error', 'Gagal mengupdate pelanggan: ' . $e->getMessage());
+        }
     }
 
     /**
-     * Remove the specified resource from storage.
+     * Remove the specified resource from storage (soft delete - set status 0).
      */
-    public function destroy(string $id)
+    public function destroy($id)
     {
-        $pelanggan = Pelanggan::findOrFail($id);
+        try {
+            $pelanggan = Pelanggan::findOrFail($id);
 
-        $pelanggan->update([
-            'status' => 0
+            // Cek apakah pelanggan memiliki transaksi aktif
+            $hasActiveOrders = Produksi::where('pelanggan_id', $id)
+                ->where('status', true)
+                ->exists();
+
+            if ($hasActiveOrders) {
+                return back()->with('error', 'Pelanggan tidak bisa dinonaktifkan karena masih memiliki order aktif');
+            }
+
+            $pelanggan->update([
+                'status' => 0
+            ]);
+
+            return back()->with('success', 'Pelanggan berhasil dinonaktifkan');
+        } catch (\Exception $e) {
+            return back()->with('error', 'Gagal menonaktifkan pelanggan: ' . $e->getMessage());
+        }
+    }
+
+    /**
+     * Activate a deactivated customer.
+     */
+    public function activate($id)
+    {
+        try {
+            $pelanggan = Pelanggan::findOrFail($id);
+
+            $pelanggan->update([
+                'status' => 1
+            ]);
+
+            return back()->with('success', 'Pelanggan berhasil diaktifkan kembali');
+        } catch (\Exception $e) {
+            return back()->with('error', 'Gagal mengaktifkan pelanggan: ' . $e->getMessage());
+        }
+    }
+
+    /**
+     * Get customers by type (for AJAX).
+     */
+    public function getByType(Request $request)
+    {
+        $request->validate([
+            'jenis' => 'required|string'
         ]);
 
-        return back()->with('success', 'Data dihapus (nonaktif)');
+        $jenisPelanggan = JenisPelanggan::where('nama_jenis', $request->jenis)->first();
+
+        if (!$jenisPelanggan) {
+            return response()->json(['data' => []]);
+        }
+
+        $pelanggans = Pelanggan::where('jenis_pelanggan_id', $jenisPelanggan->id)
+            ->where('status', 1)
+            ->get(['id', 'id_pelanggan', 'nama', 'cv']);
+
+        return response()->json(['data' => $pelanggans]);
     }
 }

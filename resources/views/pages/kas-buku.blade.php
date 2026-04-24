@@ -74,7 +74,7 @@
                 </button>
                 <button class="btn btn-outline-primary shadow-sm flex-1 sm:flex-none" data-tw-toggle="modal"
                     data-tw-target="#modal-export">
-                    <i data-lucide="download" class="w-4 h-4 mr-2"></i>Export
+                    <i data-lucide="download" class="w-4 h-4 mr-2"></i>Laporan
                 </button>
             </div>
 

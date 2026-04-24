@@ -9,6 +9,7 @@ use App\Models\Pelanggan;
 use App\Models\Piutang;
 use App\Models\Produksi;
 use App\Models\ProfilPerusahaan;
+use App\Models\JenisPelanggan;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
@@ -46,7 +47,7 @@ class ProduksiController extends Controller
 
     public function index(Request $request)
     {
-        $query = Produksi::with(['pelanggan', 'detailProduksi'])
+        $query = Produksi::with(['pelanggan.jenisPelanggan', 'detailProduksi'])
             ->where('produksis.status', true);
 
         // Filter tanggal
@@ -57,10 +58,10 @@ class ProduksiController extends Controller
             $query->whereDate('produksis.tanggal', '<=', $request->end_date);
         }
 
-        // Filter jenis pelanggan (broker)
-        if ($request->filled('broker')) {
+        // Filter jenis pelanggan (menggunakan jenis_pelanggan_id)
+        if ($request->filled('jenis_pelanggan_id')) {
             $query->whereHas('pelanggan', function ($q) use ($request) {
-                $q->where('broker', $request->broker);
+                $q->where('jenis_pelanggan_id', $request->jenis_pelanggan_id);
             });
         }
 
@@ -79,10 +80,14 @@ class ProduksiController extends Controller
             ->paginate(15);
 
         $pelanggans = Pelanggan::where('status', true)
+            ->with('jenisPelanggan')
             ->orderBy('nama')
             ->get();
 
-        return view('pages.produksi', compact('produksis', 'pelanggans'));
+        // Untuk filter dropdown jenis pelanggan
+        $jenisPelanggans = JenisPelanggan::orderBy('nama_jenis')->get();
+
+        return view('pages.produksi', compact('produksis', 'pelanggans', 'jenisPelanggans'));
     }
 
     public function create(Request $request)
@@ -91,7 +96,7 @@ class ProduksiController extends Controller
             'pelanggan_id' => 'required|exists:pelanggans,id'
         ]);
 
-        $pelanggan = Pelanggan::findOrFail($request->pelanggan_id);
+        $pelanggan = Pelanggan::with('jenisPelanggan')->findOrFail($request->pelanggan_id);
 
         $produksi = new Produksi();
         $id_produksi = $produksi->generateIdProduksi();
@@ -331,7 +336,7 @@ class ProduksiController extends Controller
 
         $produksi = Produksi::where('id_produksi', $id_produksi)
             ->with([
-                'pelanggan',
+                'pelanggan.jenisPelanggan',
                 'detailProduksi.kategori',
                 'piutang',
                 'detailPiutang' => function ($query) {
@@ -350,7 +355,7 @@ class ProduksiController extends Controller
 
         $produksi = Produksi::where('id_produksi', $id_produksi)
             ->with([
-                'pelanggan',
+                'pelanggan.jenisPelanggan',
                 'detailProduksi.kategori',
                 'piutang',
                 'detailPiutang' => function ($query) {
@@ -365,43 +370,55 @@ class ProduksiController extends Controller
 
     public function exportPdf(Request $request)
     {
-        $mode = $request->get('mode', 'today');
+        $mode = $request->get('mode', 'custom');
 
-        $query = Produksi::with(['pelanggan', 'detailProduksi'])
+        // Gunakan parameter export jika ada, fallback ke parameter filter biasa
+        $startDate = $request->get('export_start_date') ?? $request->get('start_date');
+        $endDate = $request->get('export_end_date') ?? $request->get('end_date');
+        $jenisId = $request->get('export_jenis_pelanggan_id') ?? $request->get('jenis_pelanggan_id');
+        $statusFilter = $request->get('export_status_filter') ?? $request->get('status_filter');
+        $search = $request->get('search');
+
+        $query = Produksi::with(['pelanggan.jenisPelanggan', 'detailProduksi'])
             ->where('status', true)
             ->latest('tanggal')
             ->latest('id_produksi');
 
-        // Filter sesuai mode
-        if ($mode === 'today') {
-            $query->whereDate('tanggal', today());
-            $title = 'Laporan Produksi Hari Ini';
+        // Filter tanggal
+        if ($startDate && $endDate) {
+            $query->whereDate('tanggal', '>=', $startDate)
+                ->whereDate('tanggal', '<=', $endDate);
+            $title = 'Laporan Produksi Periode ' .
+                Carbon::parse($startDate)->format('d M Y') . ' - ' .
+                Carbon::parse($endDate)->format('d M Y');
+        } elseif ($startDate) {
+            $query->whereDate('tanggal', '>=', $startDate);
+            $title = 'Laporan Produksi dari ' . Carbon::parse($startDate)->format('d M Y');
+        } elseif ($endDate) {
+            $query->whereDate('tanggal', '<=', $endDate);
+            $title = 'Laporan Produksi sampai ' . Carbon::parse($endDate)->format('d M Y');
         } else {
             $title = 'Laporan Semua Produksi';
+        }
 
-            // Filter tanggal jika ada
-            if ($request->filled('start_date')) {
-                $query->whereDate('tanggal', '>=', $request->start_date);
-            }
-            if ($request->filled('end_date')) {
-                $query->whereDate('tanggal', '<=', $request->end_date);
-            }
+        // Filter jenis pelanggan
+        if ($jenisId) {
+            $query->whereHas('pelanggan', function ($q) use ($jenisId) {
+                $q->where('jenis_pelanggan_id', $jenisId);
+            });
+            $jenisNama = JenisPelanggan::find($jenisId)?->nama_jenis;
+            if ($jenisNama) $title .= ' - ' . $jenisNama;
+        }
 
-            // Update title sesuai filter
-            if ($request->filled('start_date') && $request->filled('end_date')) {
-                $title = 'Laporan Produksi Periode ' .
-                    Carbon::parse($request->start_date)->format('d M Y') . ' - ' .
-                    Carbon::parse($request->end_date)->format('d M Y');
-            } elseif ($request->filled('start_date')) {
-                $title = 'Laporan Produksi dari ' . Carbon::parse($request->start_date)->format('d M Y');
-            } elseif ($request->filled('end_date')) {
-                $title = 'Laporan Produksi sampai ' . Carbon::parse($request->end_date)->format('d M Y');
-            }
+        // Filter status
+        if ($statusFilter) {
+            $query->where('keterangan', $statusFilter);
+            $title .= ' - ' . $statusFilter;
         }
 
         // Search
-        if ($request->filled('search')) {
-            $query->where('id_produksi', 'like', '%' . $request->search . '%');
+        if ($search) {
+            $query->where('id_produksi', 'like', '%' . $search . '%');
         }
 
         $produksis = $query->get();
@@ -419,22 +436,35 @@ class ProduksiController extends Controller
             'totalOmset',
             'totalOrder',
             'totalLunas',
-            'totalUtang',
-            'mode',
-            'request'
+            'totalUtang'
         ));
 
         $pdf->setPaper('A4', 'landscape');
 
         $filename = 'laporan-produksi';
-        if ($request->filled('start_date')) {
-            $filename .= '-' . $request->start_date;
-        }
-        if ($request->filled('end_date')) {
-            $filename .= '-sampai-' . $request->end_date;
-        }
+        if ($startDate) $filename .= '-' . $startDate;
+        if ($endDate) $filename .= '-sampai-' . $endDate;
         $filename .= '.pdf';
 
         return $pdf->download($filename);
+    }
+    public function cetakNotaPdf($id_produksi)
+    {
+        $Profilperusahaan = ProfilPerusahaan::first();
+
+        $produksi = Produksi::where('id_produksi', $id_produksi)
+            ->with([
+                'pelanggan.jenisPelanggan',
+                'detailProduksi.kategori',
+                'piutang',
+                'detailPiutang',
+                'user'
+            ])
+            ->firstOrFail();
+
+        $pdf = Pdf::loadView('pages.cetak-nota-pdf', compact('Profilperusahaan', 'produksi'));
+        $pdf->setPaper('A4', 'portrait');
+
+        return $pdf->download('Nota-' . $produksi->id_produksi . '.pdf');
     }
 }

@@ -268,10 +268,10 @@
                                     </div>
                                 </div>
 
-                                @foreach ($brokerList as $broker)
+                                @foreach ($jenisPelanggans as $jenis)
                                     <div class="col-span-6 md:col-span-4">
-                                        <div class="text-slate-500">{{ $broker }}</div>
-                                        <div>{{ $orderPerBrokerHarian[$broker] ?? 0 }} order</div>
+                                        <div class="text-slate-500">{{ $jenis->nama_jenis }}</div>
+                                        <div>{{ $orderPerJenisHarian[$jenis->nama_jenis] ?? 0 }} order</div>
                                     </div>
                                 @endforeach
                             </div>
@@ -282,7 +282,7 @@
                                 <div class="col-span-6 md:col-span-4">
                                     <div class="text-slate-500">Order Bulan Ini</div>
                                     <div class="font-medium">
-                                        {{ array_sum($orderPerBrokerBulanan) }}
+                                        {{ array_sum($orderPerJenisBulanan) }}
                                     </div>
                                 </div>
 
@@ -300,10 +300,10 @@
                                     </div>
                                 </div>
 
-                                @foreach ($brokerList as $broker)
+                                @foreach ($jenisPelanggans as $jenis)
                                     <div class="col-span-6 md:col-span-4">
-                                        <div class="text-slate-500">{{ $broker }}</div>
-                                        <div>{{ $orderPerBrokerBulanan[$broker] ?? 0 }} order</div>
+                                        <div class="text-slate-500">{{ $jenis->nama_jenis }}</div>
+                                        <div>{{ $orderPerJenisBulanan[$jenis->nama_jenis] ?? 0 }} order</div>
                                     </div>
                                 @endforeach
 

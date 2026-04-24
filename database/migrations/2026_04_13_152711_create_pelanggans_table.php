@@ -19,7 +19,7 @@ return new class extends Migration
             $table->text('alamat');
             $table->string('no_hp', 20);
             $table->integer('status');
-            $table->string('broker', 15);
+            $table->foreignId('jenis_pelanggan_id')->nullable()->constrained('jenis_pelanggans')->onDelete('restrict');
             $table->timestamps();
         });
     }

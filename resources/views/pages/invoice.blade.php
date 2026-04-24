@@ -9,7 +9,8 @@
                 Invoice #{{ $produksi->id_produksi }}
             </h2>
             <div class="w-full sm:w-auto flex mt-4 sm:mt-0">
-                <a href="{{ route('produksi.cetak', $produksi->id_produksi) }}" class="btn btn-primary shadow-md mr-2"
+                {{-- TOMBOL CETAK NOTA - LANGSUNG KE PDF --}}
+                <a href="{{ route('produksi.cetak-pdf', $produksi->id_produksi) }}" class="btn btn-primary shadow-md mr-2"
                     target="_blank">
                     <i data-lucide="printer" class="w-4 h-4 mr-2"></i> Cetak Nota
                 </a>
@@ -26,14 +27,14 @@
                 {{-- Logo & Nama Perusahaan --}}
                 <div class="flex items-center gap-4">
                     @if ($Profilperusahaan->logo)
-                        <div class="w-16 h-16 rounded-lg overflow-hidden bg-slate-100 flex items-center justify-center">
+                        <div class="w-auto h-16 rounded-lg overflow-hidden bg-slate-100 flex items-center justify-center">
                             <img src="{{ asset('storage/' . $Profilperusahaan->logo) }}" alt="Logo"
                                 class="w-full h-full object-contain">
                         </div>
                     @endif
                     <div>
                         <div class="font-bold text-primary text-2xl sm:text-3xl">
-                            {{ $Profilperusahaan->nama ?? 'Nama Perusahaan' }}
+                            {{ $Profilperusahaan->nama_perusahaan ?? ($Profilperusahaan->nama ?? 'Nama Perusahaan') }}
                         </div>
                         <div class="text-slate-500 text-sm mt-1">Invoice Resmi</div>
                     </div>
@@ -42,7 +43,7 @@
                 {{-- Info Perusahaan (Kanan) --}}
                 <div class="mt-8 lg:mt-0 lg:ml-auto lg:text-right">
                     <div class="inline-block px-4 py-1 bg-primary/10 rounded-full text-primary font-medium text-sm mb-3">
-                        {{ $Profilperusahaan->nama ?? 'Nama Perusahaan' }}
+                        {{ $Profilperusahaan->nama_perusahaan ?? ($Profilperusahaan->nama ?? 'Nama Perusahaan') }}
                     </div>
                     <div class="space-y-1 text-sm">
                         <div class="flex lg:justify-end items-center gap-2">
@@ -55,7 +56,7 @@
                         </div>
                         <div class="flex lg:justify-end items-center gap-2">
                             <i data-lucide="phone" class="w-4 h-4 text-slate-400"></i>
-                            <span>{{ $Profilperusahaan->telepon ?? '-' }}</span>
+                            <span>{{ $Profilperusahaan->telepon ?? ($Profilperusahaan->phone ?? '-') }}</span>
                         </div>
                     </div>
                 </div>
@@ -69,7 +70,7 @@
                     </div>
                     <div class="space-y-2">
                         <div class="text-xl font-semibold text-primary">
-                            {{ $produksi->pelanggan->nama_lengkap ?? $produksi->pelanggan->nama }}
+                            {{ $produksi->pelanggan->nama }}
                         </div>
                         <div class="grid grid-cols-1 gap-1 text-sm">
                             <div class="flex items-center gap-2">
@@ -78,17 +79,26 @@
                             </div>
                             <div class="flex items-center gap-2">
                                 <span class="text-slate-400 w-20">Contact</span>
-                                <span>{{ $produksi->pelanggan->cp ?? ($produksi->pelanggan->no_hp ?? '-') }}</span>
+                                <span>{{ $produksi->pelanggan->no_hp ?? '-' }}</span>
                             </div>
                             <div class="flex items-start gap-2">
                                 <span class="text-slate-400 w-20">Alamat</span>
                                 <span>{{ $produksi->pelanggan->alamat ?? '-' }}</span>
                             </div>
                             <div class="flex items-center gap-2">
-                                <span class="text-slate-400 w-20">Broker</span>
+                                <span class="text-slate-400 w-20">Jenis</span>
                                 <span>
-                                    <span class="px-2 py-0.5 bg-slate-100 dark:bg-darkmode-600 rounded text-xs">
-                                        {{ $produksi->pelanggan->broker ?? 'Non Broker' }}
+                                    @php
+                                        $badgeClass = match ($produksi->pelanggan->jenisPelanggan?->nama_jenis) {
+                                            'Broker' => 'bg-primary/10 text-primary',
+                                            'Non Broker' => 'bg-slate-100 text-slate-600',
+                                            'Kena Pajak' => 'bg-warning/10 text-warning',
+                                            'CSR' => 'bg-success/10 text-success',
+                                            default => 'bg-slate-100 text-slate-500',
+                                        };
+                                    @endphp
+                                    <span class="px-2 py-0.5 rounded text-xs {{ $badgeClass }}">
+                                        {{ $produksi->pelanggan->jenisPelanggan?->nama_jenis ?? '-' }}
                                     </span>
                                 </span>
                             </div>
@@ -201,7 +211,7 @@
                             @endif
                             <div class="flex items-center justify-between">
                                 <span class="text-slate-500 mr-2">Operator :</span>
-                                <span>{{ $produksi->user->nama ?? '-' }}</span>
+                                <span>{{ $produksi->user->name ?? ($produksi->user->nama ?? '-') }}</span>
                             </div>
                             <div class="border-t border-slate-200 dark:border-darkmode-400 pt-3 mt-3">
                                 <div class="flex items-center justify-between">
@@ -228,7 +238,8 @@
                             <div class="grid grid-cols-2">
                                 <span class="text-slate-500">Subtotal</span>
                                 <span class="text-right font-medium">
-                                    Rp {{ number_format($produksi->subtotal_item, 0, ',', '.') }}
+                                    Rp
+                                    {{ number_format($produksi->subtotal_item ?? $produksi->detailProduksi->sum('subtotal'), 0, ',', '.') }}
                                 </span>
                             </div>
 
@@ -236,12 +247,12 @@
                             <div class="grid grid-cols-2">
                                 <span class="text-slate-500">Biaya Design</span>
                                 <span class="text-right">
-                                    Rp {{ number_format($produksi->biaya_design, 0, ',', '.') }}
+                                    Rp {{ number_format($produksi->biaya_design ?? 0, 0, ',', '.') }}
                                 </span>
                             </div>
 
                             <!-- Diskon -->
-                            @if ($produksi->diskon > 0)
+                            @if (($produksi->diskon ?? 0) > 0)
                                 <div class="grid grid-cols-2 text-red-500">
                                     <span>Diskon</span>
                                     <span class="text-right">
@@ -264,7 +275,7 @@
                             <div class="grid grid-cols-2">
                                 <span class="text-slate-500">Sudah Dibayar</span>
                                 <span class="text-right">
-                                    Rp {{ number_format($produksi->total_dibayar, 0, ',', '.') }}
+                                    Rp {{ number_format($produksi->total_tagihan - $produksi->sisa_tagihan, 0, ',', '.') }}
                                 </span>
                             </div>
 
@@ -272,7 +283,7 @@
 
                             <!-- Sisa -->
                             <div class="grid grid-cols-2 items-center">
-                                <span class="font-semibolt">Sisa Tagihan</span>
+                                <span class="font-semibold">Sisa Tagihan</span>
 
                                 @if ($produksi->sisa_tagihan == 0)
                                     <span class="text-right text-green-600 font-semibold">
@@ -289,7 +300,7 @@
                     </div>
                 </div>
             </div>
-            @if ($produksi->detailPiutang->count() > 1)
+            @if ($produksi->detailPiutang && $produksi->detailPiutang->count() > 1)
                 <div class="px-5 sm:px-16 pb-10 sm:pb-16 border-t border-slate-200 dark:border-darkmode-400">
                     <div class="pt-8">
                         <div class="flex items-center gap-2 text-slate-500 text-sm mb-4">

@@ -22,7 +22,7 @@
                         data-tw-target="#modal-filter">
                         <i data-lucide="filter" class="w-4 h-4 mr-2"></i>
                         Filter
-                        @if (request('start_date') || request('end_date') || request('broker') || request('status_filter'))
+                        @if (request('start_date') || request('end_date') || request('jenis_pelanggan_id') || request('status_filter'))
                             <span class="ml-1 w-2 h-2 bg-primary rounded-full inline-block"></span>
                         @endif
                     </button>
@@ -40,7 +40,7 @@
                             {{-- Keep filter values --}}
                             <input type="hidden" name="start_date" value="{{ request('start_date') }}">
                             <input type="hidden" name="end_date" value="{{ request('end_date') }}">
-                            <input type="hidden" name="broker" value="{{ request('broker') }}">
+                            <input type="hidden" name="jenis_pelanggan_id" value="{{ request('jenis_pelanggan_id') }}">
                             <input type="hidden" name="status_filter" value="{{ request('status_filter') }}">
 
                             <input type="text" name="search" class="form-control w-56 box pr-10"
@@ -54,7 +54,7 @@
                     {{-- Export PDF --}}
                     <button type="button" class="btn btn-outline-primary shadow-md" data-tw-toggle="modal"
                         data-tw-target="#export-modal">
-                        <i data-lucide="file-text" class="w-4 h-4 mr-2"></i> Export PDF
+                        <i data-lucide="file-text" class="w-4 h-4 mr-2"></i> Laporan Produksi
                     </button>
                 </div>
             </div>
@@ -69,6 +69,7 @@
                         <th class="whitespace-nowrap">No. Nota</th>
                         <th class="whitespace-nowrap">Tanggal</th>
                         <th class="whitespace-nowrap">Pelanggan</th>
+                        <th class="whitespace-nowrap">Jenis</th>
                         <th class="whitespace-nowrap">Item</th>
                         <th class="text-right whitespace-nowrap">Total</th>
                         <th class="text-center whitespace-nowrap">Status</th>
@@ -95,7 +96,22 @@
                             <td>
                                 <div class="font-medium">{{ $produksi->pelanggan->nama }}</div>
                                 <div class="text-slate-500 text-xs">
-                                    {{ $produksi->pelanggan->cv ?? ($produksi->pelanggan->alamat ?? '-') }}</div>
+                                    {{ $produksi->pelanggan->cv ?? ($produksi->pelanggan->alamat ?? '-') }}
+                                </div>
+                            </td>
+                            <td>
+                                @php
+                                    $badgeClass = match ($produksi->pelanggan->jenisPelanggan?->nama_jenis) {
+                                        'Broker' => 'bg-primary/20 text-primary',
+                                        'Non Broker' => 'bg-slate-100 text-slate-600',
+                                        'Kena Pajak' => 'bg-warning/20 text-warning',
+                                        'CSR' => 'bg-success/20 text-success',
+                                        default => 'bg-slate-100 text-slate-500',
+                                    };
+                                @endphp
+                                <span class="px-2 py-1 rounded-full text-xs {{ $badgeClass }}">
+                                    {{ $produksi->pelanggan->jenisPelanggan?->nama_jenis ?? '-' }}
+                                </span>
                             </td>
                             <td>
                                 <div class="text-sm">
@@ -125,13 +141,13 @@
                                 <div class="flex justify-center items-center gap-2">
                                     <a href="{{ route('produksi.invoice', $produksi->id_produksi) }}"
                                         class="flex items-center text-primary text-sm" title="Detail">
-                                        <i data-lucide="eye" class="w-4 h-4"></i>
+                                        <i data-lucide="eye" class="w-4 h-4"></i> Detail
                                     </a>
                                     @if ($produksi->can_cancel)
                                         <button type="button" class="flex items-center text-danger text-sm"
                                             data-tw-toggle="modal" data-tw-target="#delete-confirmation-modal"
                                             onclick="setDelete('{{ $produksi->id_produksi }}')" title="Cancel Order">
-                                            <i data-lucide="x-circle" class="w-4 h-4"></i>
+                                            <i data-lucide="x-circle" class="w-4 h-4"></i> Cancel
                                         </button>
                                     @endif
                                 </div>
@@ -139,7 +155,7 @@
                         </tr>
                     @empty
                         <tr>
-                            <td colspan="8" class="text-center py-8 text-slate-500">
+                            <td colspan="9" class="text-center py-8 text-slate-500">
                                 <i data-lucide="file-text" class="w-10 h-10 mx-auto mb-2 text-slate-400"></i>
                                 Belum ada order hari ini. Klik "Order Baru" untuk memulai.
                             </td>
@@ -184,7 +200,7 @@
                                 <th>Nama</th>
                                 <th>CV</th>
                                 <th>No HP</th>
-                                <th>Broker</th>
+                                <th>Jenis Pelanggan</th>
                                 <th>Aksi</th>
                             </tr>
                         </thead>
@@ -194,14 +210,19 @@
                                     <td>{{ $p->id_pelanggan }}</td>
                                     <td>{{ $p->nama }}</td>
                                     <td>{{ $p->cv ?? '-' }}</td>
-                                    <td>{{ $p->no_hp ?? ($p->cp ?? '-') }}</td>
+                                    <td>{{ $p->no_hp ?? '-' }}</td>
                                     <td>
-                                        <span
-                                            class="px-2 py-1 rounded-full text-xs
-                                    {{ $p->broker == 'Broker' ? 'bg-primary/20 text-primary' : '' }}
-                                    {{ $p->broker == 'Non Broker' ? 'bg-slate-100 text-slate-600' : '' }}
-                                    {{ $p->broker == 'Pajak' ? 'bg-warning/20 text-warning' : '' }}">
-                                            {{ $p->broker }}
+                                        @php
+                                            $badgeClass = match ($p->jenisPelanggan?->nama_jenis) {
+                                                'Broker' => 'bg-primary/20 text-primary',
+                                                'Non Broker' => 'bg-slate-100 text-slate-600',
+                                                'Kena Pajak' => 'bg-warning/20 text-warning',
+                                                'CSR' => 'bg-success/20 text-success',
+                                                default => 'bg-slate-100 text-slate-500',
+                                            };
+                                        @endphp
+                                        <span class="px-2 py-1 rounded-full text-xs {{ $badgeClass }}">
+                                            {{ $p->jenisPelanggan?->nama_jenis ?? '-' }}
                                         </span>
                                     </td>
                                     <td>
@@ -218,6 +239,7 @@
             </div>
         </div>
     </div>
+
     {{-- Modal Delete --}}
     <div id="delete-confirmation-modal" class="modal" tabindex="-1">
         <div class="modal-dialog">
@@ -252,6 +274,7 @@
             </div>
         </div>
     </div>
+
     {{-- MODAL EXPORT PDF --}}
     <div id="export-modal" class="modal" tabindex="-1" aria-hidden="true">
         <div class="modal-dialog">
@@ -267,12 +290,9 @@
                 </div>
 
                 <div class="modal-body">
-                    <form id="export-form" action="{{ route('produksi.export-pdf') }}" method="GET">
+                    <form id="export-form" action="{{ route('produksi.export-pdf') }}" method="GET" target="_blank">
                         {{-- Bawa parameter filter yang ada --}}
                         <input type="hidden" name="search" value="{{ request('search') }}">
-                        <input type="hidden" name="start_date" value="{{ request('start_date') }}">
-                        <input type="hidden" name="end_date" value="{{ request('end_date') }}">
-                        <input type="hidden" name="broker" value="{{ request('broker') }}">
                         <input type="hidden" name="status_filter" value="{{ request('status_filter') }}">
 
                         <div class="mb-4">
@@ -282,7 +302,7 @@
                             </p>
                         </div>
 
-                        <div class="grid grid-cols-2 gap-4">
+                        <div class="grid grid-cols-2 gap-4 mb-4">
                             <div>
                                 <label class="form-label text-xs">Tanggal Mulai</label>
                                 <input type="date" name="export_start_date" id="export_start_date"
@@ -295,22 +315,52 @@
                             </div>
                         </div>
 
+                        {{-- FILTER JENIS PELANGGAN - SAMA PERSIS DENGAN MODAL FILTER --}}
+                        <div class="mb-4">
+                            <label class="form-label font-medium">Jenis Pelanggan</label>
+                            <select name="export_jenis_pelanggan_id" id="export_jenis_pelanggan_id" class="form-select">
+                                <option value="">Semua Jenis</option>
+                                @foreach ($jenisPelanggans as $jenis)
+                                    <option value="{{ $jenis->id }}"
+                                        {{ request('jenis_pelanggan_id') == $jenis->id ? 'selected' : '' }}>
+                                        {{ $jenis->nama_jenis }}
+                                    </option>
+                                @endforeach
+                            </select>
+                        </div>
+
+                        {{-- FILTER STATUS PEMBAYARAN - SAMA PERSIS DENGAN MODAL FILTER --}}
+                        <div class="mb-4">
+                            <label class="form-label font-medium">Status Pembayaran</label>
+                            <select name="export_status_filter" id="export_status_filter" class="form-select">
+                                <option value="">Semua Status</option>
+                                <option value="LUNAS" {{ request('status_filter') == 'LUNAS' ? 'selected' : '' }}>LUNAS
+                                </option>
+                                <option value="UTANG" {{ request('status_filter') == 'UTANG' ? 'selected' : '' }}>UTANG
+                                </option>
+                            </select>
+                        </div>
+
                         <div class="mt-4 p-3 bg-slate-50 rounded-lg">
                             <div class="flex items-center gap-2 text-sm">
                                 <i data-lucide="info" class="w-4 h-4 text-primary"></i>
                                 <span class="text-slate-600">Data yang akan diexport:</span>
                             </div>
-                            <div class="mt-2 text-xs text-slate-500">
-                                <span id="export-info">
-                                    @if (request('start_date') && request('end_date'))
-                                        Periode: {{ request('start_date') }} s/d {{ request('end_date') }}
-                                    @else
-                                        Sesuai filter aktif
-                                    @endif
-                                    <br>
-                                    Jenis: {{ request('broker') ?? 'Semua' }} |
-                                    Status: {{ request('status_filter') ?? 'Semua' }}
-                                </span>
+                            <div class="mt-2 text-xs text-slate-500" id="export-info">
+                                @if (request('start_date') && request('end_date'))
+                                    Periode: {{ request('start_date') }} s/d {{ request('end_date') }}
+                                @elseif(request('start_date'))
+                                    Dari: {{ request('start_date') }}
+                                @elseif(request('end_date'))
+                                    Sampai: {{ request('end_date') }}
+                                @else
+                                    Semua tanggal
+                                @endif
+                                <br>
+                                Jenis:
+                                {{ $jenisPelanggans->where('id', request('jenis_pelanggan_id'))->first()->nama_jenis ?? 'Semua' }}
+                                |
+                                Status: {{ request('status_filter') ?? 'Semua' }}
                             </div>
                         </div>
                     </form>
@@ -327,6 +377,7 @@
             </div>
         </div>
     </div>
+
     {{-- MODAL FILTER --}}
     <div id="modal-filter" class="modal" tabindex="-1" aria-hidden="true">
         <div class="modal-dialog">
@@ -363,15 +414,14 @@
 
                         <div class="mb-4">
                             <label class="form-label font-medium">Jenis Pelanggan</label>
-                            <select name="broker" class="form-select">
+                            <select name="jenis_pelanggan_id" class="form-select">
                                 <option value="">Semua Jenis</option>
-                                <option value="broker" {{ request('broker') == 'broker' ? 'selected' : '' }}>Broker
-                                </option>
-                                <option value="non-broker" {{ request('broker') == 'non-broker' ? 'selected' : '' }}>Non
-                                    Broker</option>
-                                <option value="kenapajak" {{ request('broker') == 'kenapajak' ? 'selected' : '' }}>Kena
-                                    Pajak</option>
-                                <option value="CSR" {{ request('broker') == 'CSR' ? 'selected' : '' }}>CSR</option>
+                                @foreach ($jenisPelanggans as $jenis)
+                                    <option value="{{ $jenis->id }}"
+                                        {{ request('jenis_pelanggan_id') == $jenis->id ? 'selected' : '' }}>
+                                        {{ $jenis->nama_jenis }}
+                                    </option>
+                                @endforeach
                             </select>
                         </div>
 
@@ -402,7 +452,9 @@
                                     Semua tanggal
                                 @endif
                                 <br>
-                                Jenis: {{ request('broker') ?? 'Semua' }} |
+                                Jenis:
+                                {{ $jenisPelanggans->where('id', request('jenis_pelanggan_id'))->first()->nama_jenis ?? 'Semua' }}
+                                |
                                 Status: {{ request('status_filter') ?? 'Semua' }}
                             </div>
                         </div>
@@ -421,6 +473,7 @@
             </div>
         </div>
     </div>
+
     @push('scripts')
         <script>
             // Search pelanggan di modal
@@ -450,7 +503,65 @@
             // Submit export
             function submitExport() {
                 let form = document.getElementById('export-form');
-                form.submit();
+
+                // Ambil nilai dari form export
+                let startDate = document.getElementById('export_start_date')?.value;
+                let endDate = document.getElementById('export_end_date')?.value;
+                let jenisId = document.getElementById('export_jenis_pelanggan_id')?.value;
+                let statusFilter = document.getElementById('export_status_filter')?.value;
+
+                // Buat URL dengan parameter
+                let url = form.action + '?';
+
+                if (startDate) url += 'start_date=' + startDate + '&';
+                if (endDate) url += 'end_date=' + endDate + '&';
+                if (jenisId) url += 'jenis_pelanggan_id=' + jenisId + '&';
+                if (statusFilter) url += 'status_filter=' + statusFilter + '&';
+
+                // Tambahkan search jika ada
+                let search = '{{ request('search') }}';
+                if (search) url += 'search=' + search + '&';
+
+                // Hapus & terakhir
+                url = url.slice(0, -1);
+
+                // Buka di tab baru
+                window.open(url, '_blank');
+            }
+
+            // Update info export
+            document.getElementById('export_start_date')?.addEventListener('change', updateExportInfo);
+            document.getElementById('export_end_date')?.addEventListener('change', updateExportInfo);
+            document.getElementById('export_jenis_pelanggan_id')?.addEventListener('change', updateExportInfo);
+            document.getElementById('export_status_filter')?.addEventListener('change', updateExportInfo);
+
+            function updateExportInfo() {
+                let startDate = document.getElementById('export_start_date')?.value;
+                let endDate = document.getElementById('export_end_date')?.value;
+                let jenisId = document.getElementById('export_jenis_pelanggan_id')?.value;
+                let statusFilter = document.getElementById('export_status_filter')?.value;
+                let infoEl = document.getElementById('export-info');
+
+                // Ambil nama jenis pelanggan
+                let jenisNama = 'Semua';
+                if (jenisId) {
+                    let option = document.querySelector('#export_jenis_pelanggan_id option[value="' + jenisId + '"]');
+                    if (option) jenisNama = option.textContent;
+                }
+
+                let info = '';
+                if (startDate && endDate) {
+                    info = `Periode: ${startDate} s/d ${endDate}\n`;
+                } else if (startDate) {
+                    info = `Dari: ${startDate}\n`;
+                } else if (endDate) {
+                    info = `Sampai: ${endDate}\n`;
+                } else {
+                    info = `Sesuai filter aktif\n`;
+                }
+                info += `Jenis: ${jenisNama} | Status: ${statusFilter || 'Semua'}`;
+
+                infoEl.innerText = info;
             }
 
             // Update info export
@@ -462,7 +573,7 @@
                 let endDate = document.getElementById('export_end_date')?.value;
                 let infoEl = document.getElementById('export-info');
 
-                let broker = '{{ request('broker') ?? 'Semua' }}';
+                let jenis = document.querySelector('select[name="jenis_pelanggan_id"] option:checked')?.text || 'Semua';
                 let status = '{{ request('status_filter') ?? 'Semua' }}';
 
                 let info = '';
@@ -475,7 +586,7 @@
                 } else {
                     info = `Sesuai filter aktif\n`;
                 }
-                info += `Jenis: ${broker} | Status: ${status}`;
+                info += `Jenis: ${jenis} | Status: ${status}`;
 
                 infoEl.innerText = info;
             }

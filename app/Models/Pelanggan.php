@@ -14,7 +14,7 @@ class Pelanggan extends Model
         'alamat',
         'no_hp',
         'status',
-        'broker',
+        'jenis_pelanggan_id',
     ];
 
     public function scopeBroker($query, $broker)
@@ -22,6 +22,10 @@ class Pelanggan extends Model
         return $query->where('broker', $broker);
     }
 
+    public function jenisPelanggan()
+    {
+        return $this->belongsTo(JenisPelanggan::class);
+    }
 
     protected static function boot()
     {

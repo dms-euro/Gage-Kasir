@@ -11,6 +11,7 @@ use App\Http\Controllers\ProfilPerusahaanController;
 use App\Http\Controllers\UssersController;
 use Illuminate\Support\Facades\Route;
 
+
 Route::middleware('guest')->group(function () {
     Route::get('/', [AuthController::class, 'loginShow'])->name('login');
     Route::post('/login', [AuthController::class, 'loginProses'])->name('loginProses');
@@ -38,7 +39,6 @@ Route::middleware('auth')->group(function () {
     Route::delete('/produksi/detail/{id}', [ProduksiController::class, 'destroyDetail'])->name('produksi.detail.destroy');
     Route::get('/produksi/invoice/{id_produksi}', [ProduksiController::class, 'invoice'])->name('produksi.invoice');
     Route::get('/produksi/cetak/{id_produksi}', [ProduksiController::class, 'cetakNota'])->name('produksi.cetak');
-    Route::get('/produksi/cetak-pdf/{id_produksi}', [ProduksiController::class, 'cetakNotaPdf'])->name('produksi.cetak-pdf');
     Route::get('/produksi/export-pdf', [ProduksiController::class, 'exportPdf'])->name('produksi.export-pdf');
     Route::delete('/produksi/{id}', [ProduksiController::class, 'destroy'])->name('produksi.destroy');
     Route::get('/piutang', [PiutangController::class, 'index'])->name('piutang.index');

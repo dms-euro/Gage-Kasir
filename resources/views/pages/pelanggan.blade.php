@@ -10,6 +10,20 @@
                 <button class="btn btn-primary shadow-md mr-2" data-tw-toggle="modal" data-tw-target="#modal-pelanggan">
                     <i data-lucide="plus" class="w-4 h-4 mr-1"></i> Tambah Pelanggan Baru
                 </button>
+
+                {{-- Filter Jenis Pelanggan --}}
+                <div class="w-auto mr-2">
+                    <select id="filter-jenis" class="form-select w-40" onchange="window.location.href=this.value">
+                        <option value="{{ route('pelanggan.index') }}">Semua Jenis</option>
+                        @foreach($jenisPelanggans as $jenis)
+                            <option value="{{ route('pelanggan.index', ['jenis_pelanggan_id' => $jenis->id]) }}"
+                                {{ request('jenis_pelanggan_id') == $jenis->id ? 'selected' : '' }}>
+                                {{ $jenis->nama_jenis }}
+                            </option>
+                        @endforeach
+                    </select>
+                </div>
+
                 <div class="hidden md:block mx-auto text-slate-500">
                     Menampilkan {{ $pelanggans->firstItem() ?? 0 }} - {{ $pelanggans->lastItem() ?? 0 }} dari {{ $pelanggans->total() }} data pelanggan
                 </div>
@@ -18,11 +32,15 @@
                         <form method="GET">
                             <input type="text" name="search" value="{{ request('search') }}"
                                 class="form-control w-56 box pr-10" placeholder="Search..." />
+                            @if(request('jenis_pelanggan_id'))
+                                <input type="hidden" name="jenis_pelanggan_id" value="{{ request('jenis_pelanggan_id') }}">
+                            @endif
                         </form>
                         <i class="w-4 h-4 absolute my-auto inset-y-0 mr-3 right-0" data-lucide="search"></i>
                     </div>
                 </div>
             </div>
+
             <div class="intro-y col-span-12 overflow-auto">
                 <div class="overflow-x-auto bg-white rounded-lg shadow">
                     <table class="table table-striped">
@@ -30,11 +48,11 @@
                             <tr>
                                 <th class="whitespace-nowrap">#</th>
                                 <th class="whitespace-nowrap">ID Pelanggan</th>
+                                <th class="whitespace-nowrap">Jenis Pelanggan</th>
                                 <th class="whitespace-nowrap">Nama</th>
                                 <th class="whitespace-nowrap">CV</th>
                                 <th class="whitespace-nowrap">Alamat</th>
                                 <th class="whitespace-nowrap">No. HP</th>
-                                <th class="whitespace-nowrap">Broker</th>
                                 <th class="whitespace-nowrap text-center">Aksi</th>
                             </tr>
                         </thead>
@@ -43,14 +61,27 @@
                                 <tr class="pelanggan-row">
                                     <td>{{ $loop->iteration + ($pelanggans->firstItem() - 1) }}</td>
                                     <td class="searchable">{{ $pelanggan->id_pelanggan }}</td>
+                                    <td>
+                                        @php
+                                            $badgeClass = match($pelanggan->jenisPelanggan?->nama_jenis) {
+                                                'Broker' => 'badge-info',
+                                                'Non Broker' => 'badge-secondary',
+                                                'Kena Pajak' => 'badge-warning',
+                                                'CSR' => 'badge-success',
+                                                default => 'badge-default'
+                                            };
+                                        @endphp
+                                        <span class="badge {{ $badgeClass }}">
+                                            {{ $pelanggan->jenisPelanggan?->nama_jenis ?? '-' }}
+                                        </span>
+                                    </td>
                                     <td class="searchable">{{ $pelanggan->nama }}</td>
                                     <td class="searchable">{{ $pelanggan->cv ?? '-' }}</td>
                                     <td class="searchable">{{ $pelanggan->alamat ?? '-' }}</td>
-                                    <td class="searchable">{{ $pelanggan->no_hp ?? $pelanggan->cp ?? '-' }}</td>
-                                    <td class="searchable">{{ $pelanggan->broker }}</td>
+                                    <td class="searchable">{{ $pelanggan->no_hp ?? '-' }}</td>
                                     <td>
                                         <div class="flex items-center justify-center gap-2">
-                                            {{-- Tombol Keranjang - Lihat Riwayat Produksi --}}
+                                            {{-- Tombol Riwayat Produksi --}}
                                             <a href="{{ route('pelanggan.produksi', $pelanggan->id) }}"
                                                class="btn btn-sm btn-outline-primary shadow-md"
                                                title="Riwayat Produksi">
@@ -65,8 +96,8 @@
                                                         '{{ $pelanggan->nama }}',
                                                         '{{ $pelanggan->cv }}',
                                                         `{{ $pelanggan->alamat }}`,
-                                                        '{{ $pelanggan->no_hp ?? $pelanggan->cp }}',
-                                                        '{{ $pelanggan->broker }}'
+                                                        '{{ $pelanggan->no_hp }}',
+                                                        '{{ $pelanggan->jenis_pelanggan_id }}'
                                                     )">
                                                 <i data-lucide="edit" class="w-4 h-4"></i>
                                             </button>
@@ -113,6 +144,21 @@
                             <input type="text" class="form-control bg-slate-100" value="{{ $previewId }}" readonly>
                         </div>
                         <div class="col-span-12">
+                            <label>Jenis Pelanggan <span class="text-danger">*</span></label>
+                            <select name="jenis_pelanggan_id" class="form-select" required>
+                                <option value="">Pilih Jenis Pelanggan</option>
+                                @foreach($jenisPelanggans as $jenis)
+                                    <option value="{{ $jenis->id }}"
+                                        {{ old('jenis_pelanggan_id') == $jenis->id ? 'selected' : '' }}>
+                                        {{ $jenis->nama_jenis }}
+                                        @if($jenis->keterangan)
+                                            - {{ $jenis->keterangan }}
+                                        @endif
+                                    </option>
+                                @endforeach
+                            </select>
+                        </div>
+                        <div class="col-span-12">
                             <label>Nama <span class="text-danger">*</span></label>
                             <input type="text" name="nama" class="form-control" placeholder="Nama pelanggan" required>
                         </div>
@@ -121,20 +167,12 @@
                             <input type="text" name="cv" class="form-control" placeholder="Nama CV">
                         </div>
                         <div class="col-span-12">
-                            <label>Alamat</label>
-                            <textarea name="alamat" class="form-control" placeholder="Alamat lengkap"></textarea>
+                            <label>Alamat <span class="text-danger">*</span></label>
+                            <textarea name="alamat" class="form-control" placeholder="Alamat lengkap" required></textarea>
                         </div>
                         <div class="col-span-12 sm:col-span-6">
-                            <label>No HP / CP</label>
-                            <input type="text" name="no_hp" class="form-control" placeholder="08xxxxxxxx">
-                        </div>
-                        <div class="col-span-12 sm:col-span-6">
-                            <label>Broker</label>
-                            <select name="broker" class="form-select">
-                                <option value="non-broker">Non Broker</option>
-                                <option value="broker">Broker</option>
-                                <option value="kenapajak">Kena Pajak</option>
-                            </select>
+                            <label>No HP / CP <span class="text-danger">*</span></label>
+                            <input type="text" name="no_hp" class="form-control" placeholder="08xxxxxxxx" required>
                         </div>
                     </div>
                     <div class="modal-footer text-right">
@@ -162,6 +200,20 @@
                     @method('PUT')
                     <div class="modal-body grid grid-cols-12 gap-4 gap-y-3">
                         <div class="col-span-12">
+                            <label>Jenis Pelanggan <span class="text-danger">*</span></label>
+                            <select name="jenis_pelanggan_id" id="edit_jenis_pelanggan_id" class="form-select" required>
+                                <option value="">Pilih Jenis Pelanggan</option>
+                                @foreach($jenisPelanggans as $jenis)
+                                    <option value="{{ $jenis->id }}">
+                                        {{ $jenis->nama_jenis }}
+                                        @if($jenis->keterangan)
+                                            - {{ $jenis->keterangan }}
+                                        @endif
+                                    </option>
+                                @endforeach
+                            </select>
+                        </div>
+                        <div class="col-span-12">
                             <label>Nama <span class="text-danger">*</span></label>
                             <input type="text" name="nama" id="edit_nama" class="form-control" required>
                         </div>
@@ -170,20 +222,12 @@
                             <input type="text" name="cv" id="edit_cv" class="form-control">
                         </div>
                         <div class="col-span-12">
-                            <label>Alamat</label>
-                            <textarea name="alamat" id="edit_alamat" class="form-control"></textarea>
+                            <label>Alamat <span class="text-danger">*</span></label>
+                            <textarea name="alamat" id="edit_alamat" class="form-control" required></textarea>
                         </div>
                         <div class="col-span-12 sm:col-span-6">
-                            <label>No HP / CP</label>
-                            <input type="text" name="no_hp" id="edit_no_hp" class="form-control">
-                        </div>
-                        <div class="col-span-12 sm:col-span-6">
-                            <label>Broker</label>
-                            <select name="broker" id="edit_broker" class="form-select">
-                                <option value="Non Broker">Non Broker</option>
-                                <option value="Broker">Broker</option>
-                                <option value="Pajak">Kena Pajak</option>
-                            </select>
+                            <label>No HP / CP <span class="text-danger">*</span></label>
+                            <input type="text" name="no_hp" id="edit_no_hp" class="form-control" required>
                         </div>
                     </div>
                     <div class="modal-footer text-right">
@@ -201,12 +245,12 @@
 
     @push('scripts')
         <script>
-            function openEdit(id, nama, cv, alamat, no_hp, broker) {
+            function openEdit(id, nama, cv, alamat, no_hp, jenisPelangganId) {
                 document.getElementById('edit_nama').value = nama || '';
                 document.getElementById('edit_cv').value = cv || '';
                 document.getElementById('edit_alamat').value = alamat || '';
                 document.getElementById('edit_no_hp').value = no_hp || '';
-                document.getElementById('edit_broker').value = broker || 'Non Broker';
+                document.getElementById('edit_jenis_pelanggan_id').value = jenisPelangganId || '';
                 document.getElementById('form-edit').action = `/pelanggan/${id}`;
             }
         </script>

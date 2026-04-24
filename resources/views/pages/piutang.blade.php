@@ -32,7 +32,7 @@
                     {{-- MODAL EXPORT PDF --}}
                     <button type="button" class="btn btn-outline-primary shadow-md" data-tw-toggle="modal"
                         data-tw-target="#export-modal">
-                        <i data-lucide="file-text" class="w-4 h-4 mr-2"></i> Export PDF
+                        <i data-lucide="file-text" class="w-4 h-4 mr-2"></i> Laporan Piutang
                     </button>
                     <div id="export-modal" class="modal" tabindex="-1" aria-hidden="true">
                         <div class="modal-dialog">

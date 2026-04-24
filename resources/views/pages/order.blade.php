@@ -31,24 +31,29 @@
                         <div class="font-semibold text-sm">{{ $pelanggan->id_pelanggan }}</div>
                     </div>
                     <div>
-                        <div class="text-slate-500 text-xs mb-1">Tipe</div>
+                        <div class="text-slate-500 text-xs mb-1">Jenis Pelanggan</div>
                         <div>
-                            <span
-                                class="px-3 py-1 rounded-full text-xs font-medium
-                                {{ $pelanggan->broker == 'Broker' ? 'bg-primary/10 text-primary' : '' }}
-                                {{ $pelanggan->broker == 'Non Broker' ? 'bg-slate-100 text-slate-600' : '' }}
-                                {{ $pelanggan->broker == 'Pajak' ? 'bg-warning/10 text-warning' : '' }}">
-                                {{ $pelanggan->broker }}
+                            @php
+                                $badgeClass = match($pelanggan->jenisPelanggan?->nama_jenis) {
+                                    'Broker' => 'bg-primary/10 text-primary',
+                                    'Non Broker' => 'bg-slate-100 text-slate-600',
+                                    'Kena Pajak' => 'bg-warning/10 text-warning',
+                                    'CSR' => 'bg-success/10 text-success',
+                                    default => 'bg-slate-100 text-slate-500'
+                                };
+                            @endphp
+                            <span class="px-3 py-1 rounded-full text-xs font-medium {{ $badgeClass }}">
+                                {{ $pelanggan->jenisPelanggan?->nama_jenis ?? '-' }}
                             </span>
                         </div>
                     </div>
                     <div class="md:col-span-2">
                         <div class="text-slate-500 text-xs mb-1">Nama / CV</div>
-                        <div class="font-semibold">{{ $pelanggan->nama_lengkap }}</div>
+                        <div class="font-semibold">{{ $pelanggan->nama }}</div>
                     </div>
                     <div>
                         <div class="text-slate-500 text-xs mb-1">Contact Person</div>
-                        <div class="font-medium">{{ $pelanggan->no_hp ?? ($pelanggan->cp ?? '-') }}</div>
+                        <div class="font-medium">{{ $pelanggan->no_hp ?? '-' }}</div>
                     </div>
                     <div>
                         <div class="text-slate-500 text-xs mb-1">Alamat</div>

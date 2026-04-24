@@ -26,43 +26,6 @@
             </a>
         </li>
 
-        {{-- PELANGGAN --}}
-        <li class="{{ isOpen('pelanggan.*') ? 'side-menu--active side-menu--open' : '' }}">
-            <a href="javascript:;" class="side-menu {{ isOpen('pelanggan.*') ? 'side-menu--active' : '' }}">
-                <div class="side-menu__icon"><i data-lucide="users"></i></div>
-                <div class="side-menu__title">
-                    Pelanggan
-                    <div class="side-menu__sub-icon"><i data-lucide="chevron-down"></i></div>
-                </div>
-            </a>
-
-            <ul style="{{ isOpen('pelanggan.*') ? 'display:block;' : '' }}">
-                <li>
-                    <a href="{{ route('pelanggan.index', ['broker' => 'broker']) }}"
-                        class="side-menu {{ request('broker') == 'broker' ? 'side-menu--active' : '' }}">
-                        <div class="side-menu__icon"><i data-lucide="activity"></i></div>
-                        <div class="side-menu__title">Broker</div>
-                    </a>
-                </li>
-
-                <li>
-                    <a href="{{ route('pelanggan.index', ['broker' => 'non-broker']) }}"
-                        class="side-menu {{ request('broker') == 'non-broker' ? 'side-menu--active' : '' }}">
-                        <div class="side-menu__icon"><i data-lucide="activity"></i></div>
-                        <div class="side-menu__title">Non Broker</div>
-                    </a>
-                </li>
-
-                <li>
-                    <a href="{{ route('pelanggan.index', ['broker' => 'kenapajak']) }}"
-                        class="side-menu {{ request('broker') == 'kenapajak' ? 'side-menu--active' : '' }}">
-                        <div class="side-menu__icon"><i data-lucide="activity"></i></div>
-                        <div class="side-menu__title">Kena Pajak</div>
-                    </a>
-                </li>
-            </ul>
-        </li>
-
         {{-- PRODUKSI --}}
         <li>
             <a href="{{ route('produksi.index', ['mode' => 'today']) }}" class="side-menu {{ active('produksi.*') }}">
@@ -79,6 +42,32 @@
             </a>
         </li>
 
+        {{-- PELANGGAN --}}
+        @php
+            $jenisPelanggans = App\Models\JenisPelanggan::get();
+        @endphp
+        <li class="{{ isOpen('pelanggan.*') ? 'side-menu--active side-menu--open' : '' }}">
+            <a href="javascript:;" class="side-menu {{ isOpen('pelanggan.*') ? 'side-menu--active' : '' }}">
+                <div class="side-menu__icon"><i data-lucide="users"></i></div>
+                <div class="side-menu__title">
+                    Pelanggan
+                    <div class="side-menu__sub-icon"><i data-lucide="chevron-down"></i></div>
+                </div>
+            </a>
+
+            <ul style="{{ isOpen('pelanggan.*') ? 'display:block;' : '' }}">
+                @foreach ($jenisPelanggans as $jenis)
+                    <li>
+                        <a href="{{ route('pelanggan.index', ['jenis_pelanggan_id' => $jenis->id]) }}"
+                            class="side-menu {{ request('jenis_pelanggan_id') == $jenis->id ? 'side-menu--active' : '' }}">
+                            <div class="side-menu__icon"><i data-lucide="activity"></i></div>
+                            <div class="side-menu__title"> {{ $jenis->nama_jenis }}</div>
+                        </a>
+                    </li>
+                @endforeach
+            </ul>
+        </li>
+
         {{-- PENGATURAN --}}
         @if (auth()->user()->level == 'admin')
             <li>
@@ -88,6 +77,7 @@
                     <div class="side-menu__title">Kas Buku</div>
                 </a>
             </li>
+
             <li class="{{ isOpen(['profile-perusahaan.*', 'user.*']) ? 'side-menu--active side-menu--open' : '' }}">
                 <a href="javascript:;"
                     class="side-menu {{ isOpen(['profile-perusahaan.*', 'user.*']) ? 'side-menu--active' : '' }}">
@@ -103,7 +93,15 @@
                     <li>
                         <a href="{{ route('kategori.index') }}" class="side-menu {{ active('kategori.*') }}">
                             <div class="side-menu__icon"><i data-lucide="activity"></i></div>
-                            <div class="side-menu__title">Kategori</div>
+                            <div class="side-menu__title">Kategori Produksi</div>
+                        </a>
+                    </li>
+
+                    <li>
+                        <a href="{{ route('jenis-pelanggan.index') }}"
+                            class="side-menu {{ active('jenis-pelanggan.*') }}">
+                            <div class="side-menu__icon"><i data-lucide="activity"></i></div>
+                            <div class="side-menu__title">Kategori Pelanggan</div>
                         </a>
                     </li>
 
