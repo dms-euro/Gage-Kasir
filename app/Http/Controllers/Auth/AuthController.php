@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Auth;
 
 use App\Http\Controllers\Controller;
+use App\Models\Absensi;
 use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -16,7 +17,7 @@ class AuthController extends Controller
      */
     public function loginShow()
     {
-        return view ('auth.login');
+        return view('auth.login');
     }
 
     /**
@@ -31,7 +32,31 @@ class AuthController extends Controller
 
         if (Auth::attempt($credentials)) {
             $request->session()->regenerate();
-            return redirect()->route('dashboard.index')->with('success', 'Login berhasil.');
+
+            $user = Auth::user();
+
+            // ADMIN langsung dashboard
+            if ($user->level === 'admin') {
+                return redirect()->route('dashboard.index')
+                    ->with('success', 'Login berhasil.');
+            }
+
+            // KARYAWAN / FRONT OFFICE
+            $today = now()->toDateString();
+
+            $absensi = Absensi::where('user_id', $user->id)
+                ->where('date', $today)
+                ->first();
+
+            // BELUM CHECK IN
+            if (!$absensi || !$absensi->check_in_time) {
+                return redirect()->route('absensi.index')
+                    ->with('info', 'Silakan absen terlebih dahulu');
+            }
+
+            // SUDAH ABSEN
+            return redirect()->route('dashboard.index')
+                ->with('success', 'Selamat datang kembali');
         }
 
         return back()->with('error', 'Maaf Periksa Username dan Password Anda');

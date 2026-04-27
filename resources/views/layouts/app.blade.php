@@ -13,23 +13,46 @@
     <title>@yield('title', 'Sistem')</title>
     <link rel="stylesheet" href="{{ asset('templates/Compiled/dist/css/app.css') }}" />
     {{-- <link href="https://cdnjs.cloudflare.com/ajax/libs/flowbite/2.2.0/flowbite.min.css" rel="stylesheet" /> --}}
+    <style>
+        @media (max-width: 768px) {
+            .content {
+                padding-bottom: 70px;
+            }
+        }
+
+        @media (max-width: 768px) {
+            ::-webkit-scrollbar {
+                width: 0px;
+                background: transparent;
+            }
+        }
+    </style>
 </head>
 
 <body class="py-5 md:py-0">
-    @include('layouts.topbar')
+
+    <div class="hidden md:block">
+        @include('layouts.topbar')
+    </div>
+
     <div class="flex overflow-hidden">
 
-        @include('layouts.sidebar')
+        <div class="hidden md:block">
+            @include('layouts.sidebar')
+        </div>
 
-        <div class="content">
+        <div class="content w-full min-h-screen pb-20 md:pb-0">
             @yield('content')
         </div>
 
     </div>
 
+    @include('layouts.mobile-nav')
+
     @include('layouts.scripts')
     @stack('scripts')
 
 </body>
-    @include('layouts.alert')
+@include('layouts.alert')
+
 </html>

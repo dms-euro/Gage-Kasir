@@ -28,4 +28,13 @@ class User extends Authenticatable
             'password' => 'hashed',
         ];
     }
+    public function absensis()
+    {
+        return $this->hasMany(Absensi::class);
+    }
+    // Absensi hari ini
+    public function absensiHariIni()
+    {
+        return $this->absensis()->whereDate('date', today())->first();
+    }
 }

@@ -1,5 +1,8 @@
 <?php
 
+use App\Http\Controllers\AbsensiController;
+use App\Http\Controllers\Admin\AbsensiAdminController;
+use App\Http\Controllers\Admin\AbsensiConfigController;
 use App\Http\Controllers\Auth\AuthController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\JenisPelangganController;
@@ -10,6 +13,7 @@ use App\Http\Controllers\ProduksiController;
 use App\Http\Controllers\ProfilPerusahaanController;
 use App\Http\Controllers\UssersController;
 use Illuminate\Support\Facades\Route;
+use Illuminate\Support\Facades\Storage;
 
 Route::middleware('guest')->group(function () {
     Route::get('/', [AuthController::class, 'loginShow'])->name('login');
@@ -57,10 +61,34 @@ Route::middleware('auth')->group(function () {
     Route::get('/kas-buku', [KasBukuController::class, 'index'])->name('kas.index');
     Route::post('/kas-buku', [KasBukuController::class, 'store'])->name('kas.store');
     Route::delete('/kas-buku/{id}', [KasBukuController::class, 'destroy'])->name('kas.destroy');
-    Route::get('/kas-buku/export', [KasBukuController   ::class, 'export'])->name('kas.export');
+    Route::get('/kas-buku/export', [KasBukuController::class, 'export'])->name('kas.export');
     Route::get('/jenis-pelanggan', [JenisPelangganController::class, 'index'])->name('jenis-pelanggan.index');
     Route::post('/jenis-pelanggan', [JenisPelangganController::class, 'store'])->name('jenis-pelanggan.store');
     Route::put('/jenis-pelanggan/{id}', [JenisPelangganController::class, 'update'])->name('jenis-pelanggan.update');
     Route::delete('/jenis-pelanggan/{id}', [JenisPelangganController::class, 'destroy'])->name('jenis-pelanggan.destroy');
-    Route::get('/logout', [AuthController::class, 'logout'])->name('logout');
+    Route::get('/absensi', [AbsensiController::class, 'index'])->name('absensi.index');
+    Route::post('/absensi', [AbsensiController::class, 'store'])->name('absensi.store');
+    Route::get('/absensi/riwayat', [AbsensiController::class, 'riwayat'])->name('absensi.riwayat');
+    Route::get('/admin/absensi/rekap', [AbsensiAdminController::class, 'rekap'])->name('absensi.rekap');
+    Route::get('/admin/absensi/export', [AbsensiAdminController::class, 'exportPdf'])->name('absensi.export');
+    Route::get('/config-absensi', [AbsensiConfigController::class, 'index'])->name('config-absensi.index');
+    Route::put('/config-absensi', [AbsensiConfigController::class, 'update'])->name('config-absensi.update');
+    Route::get('/test-foto', function () {
+
+        $photo = 'absensi\69ed7bde7560b.jpg'; // ganti sesuai file kamu
+
+        // ambil ukuran
+        $size = Storage::disk('public')->size($photo);
+
+        $sizeKB = $size / 1024;
+        $sizeMB = $sizeKB / 1024;
+
+        dd([
+            'file' => $photo,
+            'byte' => $size,
+            'kb' => round($sizeKB, 2),
+            'mb' => round($sizeMB, 2),
+        ]);
+    });
+    Route::post('/logout', [AuthController::class, 'logout'])->name('logout');
 });

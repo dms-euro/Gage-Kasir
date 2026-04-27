@@ -2,6 +2,7 @@
 
 namespace Database\Seeders;
 
+use App\Models\AbsensiConfig;
 use App\Models\User;
 use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
@@ -23,6 +24,14 @@ class DatabaseSeeder extends Seeder
             'nama' => 'Admin',
             'level' => 'admin',
             'password' => Hash::make('admin123'),
+        ]);
+
+        AbsensiConfig::create([
+            'latitude' => -7.5800,
+            'longitude' => 110.9300,
+            'radius' => 100,
+            'jam_masuk' => '08:00:00',
+            'jam_pulang' => '17:00:00',
         ]);
     }
 }
