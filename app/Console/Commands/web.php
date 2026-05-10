@@ -20,7 +20,6 @@ Route::middleware('guest')->group(function () {
     Route::post('/login', [AuthController::class, 'loginProses'])->name('loginProses');
     Route::get('/register', [AuthController::class, 'registerShow'])->name('registerShow');
     Route::post('/register', [AuthController::class, 'registerProses'])->name('registerProses');
-    Route::get('/invoice', [ProduksiController::class, 'invoicePublic'])->name('invoice.public');
 });
 
 Route::middleware('auth')->group(function () {
@@ -76,15 +75,21 @@ Route::middleware('auth')->group(function () {
     Route::put('/config-absensi', [AbsensiConfigController::class, 'update'])->name('config-absensi.update');
     Route::get('/test-foto', function () {
 
-        $photo = 'absensi\69ed7bde7560b.jpg'; // ganti sesuai file kamu
+        $photo = 'absensi/1777215054_69ee264e7eccb.jpg';
 
-        // ambil ukuran
-        $size = Storage::disk('public')->size($photo);
+        $fullPath = public_path('storage/' . $photo);
+
+        if (!file_exists($fullPath)) {
+            return dd('File tidak ditemukan: ' . $fullPath);
+        }
+
+        $size = filesize($fullPath);
 
         $sizeKB = $size / 1024;
         $sizeMB = $sizeKB / 1024;
 
         dd([
+            'path' => $fullPath,
             'file' => $photo,
             'byte' => $size,
             'kb' => round($sizeKB, 2),

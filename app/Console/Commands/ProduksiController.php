@@ -439,7 +439,7 @@ class ProduksiController extends Controller
             'totalUtang'
         ));
 
-        $pdf->setPaper('F4', 'landscape');
+        $pdf->setPaper('A4', 'landscape');
 
         $filename = 'laporan-produksi';
         if ($startDate) $filename .= '-' . $startDate;
@@ -463,33 +463,8 @@ class ProduksiController extends Controller
             ->firstOrFail();
 
         $pdf = Pdf::loadView('pages.cetak-nota-pdf', compact('Profilperusahaan', 'produksi'));
-        $pdf->setPaper('F4', 'portrait');
+        $pdf->setPaper('A4', 'portrait');
 
         return $pdf->stream('Nota-' . $produksi->id_produksi . '.pdf');
-    }
-    /**
-     * Halaman invoice publik (tanpa login) - Seperti POS Receipt
-     */
-    public function invoicePublic(Request $request)
-    {
-        $id_produksi = $request->get('order_no');
-
-        if (!$id_produksi) {
-            abort(404);
-        }
-
-        $Profilperusahaan = ProfilPerusahaan::first();
-
-        $produksi = Produksi::where('id_produksi', $id_produksi)
-            ->with([
-                'pelanggan',
-                'detailProduksi.kategori',
-                'piutang',
-                'detailPiutang' => fn($q) => $q->orderBy('tanggal', 'asc'),
-                'user'
-            ])
-            ->firstOrFail();
-
-        return view('pages.invoice-public', compact('Profilperusahaan', 'produksi'));
     }
 }

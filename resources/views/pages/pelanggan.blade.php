@@ -15,7 +15,7 @@
                 <div class="w-auto mr-2">
                     <select id="filter-jenis" class="form-select w-40" onchange="window.location.href=this.value">
                         <option value="{{ route('pelanggan.index') }}">Semua Jenis</option>
-                        @foreach($jenisPelanggans as $jenis)
+                        @foreach ($jenisPelanggans as $jenis)
                             <option value="{{ route('pelanggan.index', ['jenis_pelanggan_id' => $jenis->id]) }}"
                                 {{ request('jenis_pelanggan_id') == $jenis->id ? 'selected' : '' }}>
                                 {{ $jenis->nama_jenis }}
@@ -25,14 +25,15 @@
                 </div>
 
                 <div class="hidden md:block mx-auto text-slate-500">
-                    Menampilkan {{ $pelanggans->firstItem() ?? 0 }} - {{ $pelanggans->lastItem() ?? 0 }} dari {{ $pelanggans->total() }} data pelanggan
+                    Menampilkan {{ $pelanggans->firstItem() ?? 0 }} - {{ $pelanggans->lastItem() ?? 0 }} dari
+                    {{ $pelanggans->total() }} data pelanggan
                 </div>
                 <div class="w-full sm:w-auto mt-3 sm:mt-0 sm:ml-auto md:ml-0">
                     <div class="w-56 relative text-slate-500">
                         <form method="GET">
                             <input type="text" name="search" value="{{ request('search') }}"
                                 class="form-control w-56 box pr-10" placeholder="Search..." />
-                            @if(request('jenis_pelanggan_id'))
+                            @if (request('jenis_pelanggan_id'))
                                 <input type="hidden" name="jenis_pelanggan_id" value="{{ request('jenis_pelanggan_id') }}">
                             @endif
                         </form>
@@ -63,12 +64,12 @@
                                     <td class="searchable">{{ $pelanggan->id_pelanggan }}</td>
                                     <td>
                                         @php
-                                            $badgeClass = match($pelanggan->jenisPelanggan?->nama_jenis) {
+                                            $badgeClass = match ($pelanggan->jenisPelanggan?->nama_jenis) {
                                                 'Broker' => 'badge-info',
                                                 'Non Broker' => 'badge-secondary',
                                                 'Kena Pajak' => 'badge-warning',
                                                 'CSR' => 'badge-success',
-                                                default => 'badge-default'
+                                                default => 'badge-default',
                                             };
                                         @endphp
                                         <span class="badge {{ $badgeClass }}">
@@ -83,15 +84,14 @@
                                         <div class="flex items-center justify-center gap-2">
                                             {{-- Tombol Riwayat Produksi --}}
                                             <a href="{{ route('pelanggan.produksi', $pelanggan->id) }}"
-                                               class="btn btn-sm btn-outline-primary shadow-md"
-                                               title="Riwayat Produksi">
+                                                class="btn btn-sm btn-outline-primary shadow-md" title="Riwayat Produksi">
                                                 <i data-lucide="shopping-bag" class="w-4 h-4"></i>
                                             </a>
 
                                             {{-- Tombol Edit --}}
-                                            <button class="btn btn-sm btn-outline-warning shadow-md"
-                                                    data-tw-toggle="modal" data-tw-target="#modal-edit-pelanggan"
-                                                    onclick="openEdit(
+                                            <button class="btn btn-sm btn-outline-warning shadow-md" data-tw-toggle="modal"
+                                                data-tw-target="#modal-edit-pelanggan"
+                                                onclick="openEdit(
                                                         '{{ $pelanggan->id }}',
                                                         '{{ $pelanggan->nama }}',
                                                         '{{ $pelanggan->cv }}',
@@ -135,52 +135,78 @@
                     <h2 class="font-medium text-base mr-auto">
                         Tambah Pelanggan
                     </h2>
+                    <button type="button" data-tw-dismiss="modal" class="text-slate-400 hover:text-slate-600">
+                        <i data-lucide="x" class="w-5 h-5"></i>
+                    </button>
                 </div>
                 <form action="{{ route('pelanggan.store') }}" method="POST">
                     @csrf
                     <div class="modal-body grid grid-cols-12 gap-4 gap-y-3">
-                        <div class="col-span-12">
-                            <label>ID Pelanggan</label>
+
+                        {{-- ID Pelanggan --}}
+                        <div class="col-span-12 sm:col-span-6">
+                            <label class="form-label">ID Pelanggan</label>
                             <input type="text" class="form-control bg-slate-100" value="{{ $previewId }}" readonly>
                         </div>
-                        <div class="col-span-12">
-                            <label>Jenis Pelanggan <span class="text-danger">*</span></label>
+
+                        {{-- Jenis Pelanggan --}}
+                        <div class="col-span-12 sm:col-span-6">
+                            <label class="form-label">Jenis Pelanggan <span class="text-danger">*</span></label>
                             <select name="jenis_pelanggan_id" class="form-select" required>
-                                <option value="">Pilih Jenis Pelanggan</option>
-                                @foreach($jenisPelanggans as $jenis)
+                                <option value="">Pilih Jenis</option>
+                                @foreach ($jenisPelanggans as $jenis)
                                     <option value="{{ $jenis->id }}"
                                         {{ old('jenis_pelanggan_id') == $jenis->id ? 'selected' : '' }}>
                                         {{ $jenis->nama_jenis }}
-                                        @if($jenis->keterangan)
+                                        @if ($jenis->keterangan)
                                             - {{ $jenis->keterangan }}
                                         @endif
                                     </option>
                                 @endforeach
                             </select>
                         </div>
+
+                        {{-- Nama --}}
                         <div class="col-span-12">
-                            <label>Nama <span class="text-danger">*</span></label>
-                            <input type="text" name="nama" class="form-control" placeholder="Nama pelanggan" required>
+                            <label class="form-label">Nama <span class="text-danger">*</span></label>
+                            <input type="text" name="nama" class="form-control" placeholder="Nama pelanggan"
+                                value="{{ old('nama') }}" required>
                         </div>
-                        <div class="col-span-12">
-                            <label>CV / Perusahaan</label>
-                            <input type="text" name="cv" class="form-control" placeholder="Nama CV">
-                        </div>
-                        <div class="col-span-12">
-                            <label>Alamat <span class="text-danger">*</span></label>
-                            <textarea name="alamat" class="form-control" placeholder="Alamat lengkap" required></textarea>
-                        </div>
+
+                        {{-- CV --}}
                         <div class="col-span-12 sm:col-span-6">
-                            <label>No HP / CP <span class="text-danger">*</span></label>
-                            <input type="text" name="no_hp" class="form-control" placeholder="08xxxxxxxx" required>
+                            <label class="form-label">CV / Perusahaan</label>
+                            <input type="text" name="cv" class="form-control" placeholder="Nama CV"
+                                value="{{ old('cv') }}">
                         </div>
+
+                        {{-- No HP / WhatsApp --}}
+                        <div class="col-span-12 sm:col-span-6">
+                            <label class="form-label">No HP / WhatsApp <span class="text-danger">*</span></label>
+                            <div class="input-group">
+                                <span class="input-group-text bg-slate-100 font-medium">+62</span>
+                                <input type="text" name="no_hp" class="form-control" placeholder="81234567890"
+                                    value="{{ old('no_hp') }}" pattern="[0-9]*" maxlength="13"
+                                    oninput="this.value = this.value.replace(/[^0-9]/g, '')" required>
+                            </div>
+                            <small class="text-slate-400 mt-1 block">
+                                Masukkan nomor tanpa 0 depan. Contoh:81234567890
+                            </small>
+                        </div>
+
+                        {{-- Alamat --}}
+                        <div class="col-span-12">
+                            <label class="form-label">Alamat <span class="text-danger">*</span></label>
+                            <textarea name="alamat" class="form-control" rows="2" placeholder="Alamat lengkap" required>{{ old('alamat') }}</textarea>
+                        </div>
+
                     </div>
                     <div class="modal-footer text-right">
-                        <button type="reset" class="btn btn-outline-secondary mr-1" data-tw-dismiss="modal">
+                        <button type="button" data-tw-dismiss="modal" class="btn btn-outline-secondary mr-1">
                             Batal
                         </button>
                         <button type="submit" class="btn btn-primary">
-                            Simpan
+                            <i data-lucide="save" class="w-4 h-4 mr-1"></i> Simpan
                         </button>
                     </div>
                 </form>
@@ -194,48 +220,71 @@
             <div class="modal-content">
                 <div class="modal-header">
                     <h2 class="font-medium text-base">Edit Pelanggan</h2>
+                    <button type="button" data-tw-dismiss="modal" class="text-slate-400 hover:text-slate-600">
+                        <i data-lucide="x" class="w-5 h-5"></i>
+                    </button>
                 </div>
                 <form id="form-edit" method="POST">
                     @csrf
                     @method('PUT')
                     <div class="modal-body grid grid-cols-12 gap-4 gap-y-3">
-                        <div class="col-span-12">
-                            <label>Jenis Pelanggan <span class="text-danger">*</span></label>
+
+                        {{-- Jenis Pelanggan --}}
+                        <div class="col-span-12 sm:col-span-6">
+                            <label class="form-label">Jenis Pelanggan <span class="text-danger">*</span></label>
                             <select name="jenis_pelanggan_id" id="edit_jenis_pelanggan_id" class="form-select" required>
-                                <option value="">Pilih Jenis Pelanggan</option>
-                                @foreach($jenisPelanggans as $jenis)
+                                <option value="">Pilih Jenis</option>
+                                @foreach ($jenisPelanggans as $jenis)
                                     <option value="{{ $jenis->id }}">
                                         {{ $jenis->nama_jenis }}
-                                        @if($jenis->keterangan)
+                                        @if ($jenis->keterangan)
                                             - {{ $jenis->keterangan }}
                                         @endif
                                     </option>
                                 @endforeach
                             </select>
                         </div>
+
+                        {{-- No HP / WhatsApp --}}
+                        <div class="col-span-12 sm:col-span-6">
+                            <label class="form-label">No HP / WhatsApp <span class="text-danger">*</span></label>
+                            <div class="input-group">
+                                <span class="input-group-text bg-slate-100 font-medium">+62</span>
+                                <input type="text" name="no_hp" id="edit_no_hp" class="form-control"
+                                    placeholder="81234567890" pattern="[0-9]*" maxlength="13"
+                                    oninput="this.value = this.value.replace(/[^0-9]/g, '')" required>
+                            </div>
+                            <small class="text-slate-400 mt-1 block">
+                                Masukkan nomor tanpa 0 depan. Contoh:81234567890
+                            </small>
+                        </div>
+
+                        {{-- Nama --}}
                         <div class="col-span-12">
-                            <label>Nama <span class="text-danger">*</span></label>
+                            <label class="form-label">Nama <span class="text-danger">*</span></label>
                             <input type="text" name="nama" id="edit_nama" class="form-control" required>
                         </div>
-                        <div class="col-span-12">
-                            <label>CV</label>
-                            <input type="text" name="cv" id="edit_cv" class="form-control">
-                        </div>
-                        <div class="col-span-12">
-                            <label>Alamat <span class="text-danger">*</span></label>
-                            <textarea name="alamat" id="edit_alamat" class="form-control" required></textarea>
-                        </div>
+
+                        {{-- CV --}}
                         <div class="col-span-12 sm:col-span-6">
-                            <label>No HP / CP <span class="text-danger">*</span></label>
-                            <input type="text" name="no_hp" id="edit_no_hp" class="form-control" required>
+                            <label class="form-label">CV / Perusahaan</label>
+                            <input type="text" name="cv" id="edit_cv" class="form-control"
+                                placeholder="Nama CV">
                         </div>
+
+                        {{-- Alamat --}}
+                        <div class="col-span-12 sm:col-span-6">
+                            <label class="form-label">Alamat <span class="text-danger">*</span></label>
+                            <textarea name="alamat" id="edit_alamat" class="form-control" rows="2" required></textarea>
+                        </div>
+
                     </div>
                     <div class="modal-footer text-right">
-                        <button type="button" class="btn btn-outline-secondary" data-tw-dismiss="modal">
+                        <button type="button" data-tw-dismiss="modal" class="btn btn-outline-secondary">
                             Batal
                         </button>
                         <button type="submit" class="btn btn-primary">
-                            Update
+                            <i data-lucide="save" class="w-4 h-4 mr-1"></i> Update
                         </button>
                     </div>
                 </form>
@@ -245,13 +294,24 @@
 
     @push('scripts')
         <script>
-            function openEdit(id, nama, cv, alamat, no_hp, jenisPelangganId) {
+            function openEdit(id, nama, cv, alamat, no_hp, jenis_pelanggan_id) {
                 document.getElementById('edit_nama').value = nama || '';
                 document.getElementById('edit_cv').value = cv || '';
                 document.getElementById('edit_alamat').value = alamat || '';
-                document.getElementById('edit_no_hp').value = no_hp || '';
-                document.getElementById('edit_jenis_pelanggan_id').value = jenisPelangganId || '';
-                document.getElementById('form-edit').action = `/pelanggan/${id}`;
+
+                // Bersihkan nomor HP (tampilkan tanpa +62 di form)
+                let cleanNo = (no_hp || '').replace(/[^0-9]/g, '');
+                if (cleanNo.startsWith('62')) {
+                    cleanNo = cleanNo.substring(2);
+                }
+                if (cleanNo.startsWith('0')) {
+                    cleanNo = cleanNo.substring(1);
+                }
+                document.getElementById('edit_no_hp').value = cleanNo;
+
+                document.getElementById('edit_jenis_pelanggan_id').value = jenis_pelanggan_id || '';
+
+                document.getElementById('form-edit').action = '/pelanggan/' + id;
             }
         </script>
     @endpush

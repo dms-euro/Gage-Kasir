@@ -14,6 +14,13 @@
                     target="_blank">
                     <i data-lucide="printer" class="w-4 h-4 mr-2"></i> Cetak Nota
                 </a>
+                {{-- Kirim WhatsApp --}}
+                @if ($produksi->pelanggan->no_hp || $produksi->pelanggan->cp)
+                    <button class="btn btn-success shadow-md gap-2"
+                        onclick="kirimWhatsApp('{{ $produksi->pelanggan->no_wa }}')">
+                        <i data-lucide="send" class="w-4 h-4 mr-2"></i> Kirim Invoice
+                    </button>
+                @endif
                 <a href="{{ route('produksi.index') }}" class="btn btn-primary shadow-md mr-2 no-print">
                     <i data-lucide="home" class="w-4 h-4 mr-2"></i> Kembali
                 </a>
@@ -353,16 +360,39 @@
             </div>
         </div>
     </div>
+
     @push('scripts')
         <script>
-            function printInvoice() {
-                const originalTitle = document.title;
+            function kirimWhatsApp(noWa) {
+                let no = noWa.replace(/[^0-9]/g, '');
 
-                document.title = 'Invoice-{{ $produksi->id_produksi }}';
+                // Parameter untuk URL
+                let orderNo = '{{ $produksi->id_produksi }}';
+                let phone = no;
+                let total = '{{ $produksi->total_tagihan }}';
+                let sisa = '{{ $produksi->sisa_tagihan }}';
+                let nama = '{{ $produksi->pelanggan->nama }}';
 
-                window.print();
+                // Buat URL dengan query string (seperti Olsera)
+                let linkInvoice = '{{ route('invoice.public') }}' +
+                    '?lang=id' +
+                    '&order_no=' + orderNo +
+                    '&phone=' + encodeURIComponent(phone) +
+                    '&total=' + total +
+                    '&sisa=' + sisa +
+                    '&nama=' + encodeURIComponent(nama);
 
-                document.title = originalTitle;
+                // Pesan WhatsApp
+                let pesan =
+                    'Halo {{ $produksi->pelanggan->nama }},\n\n' +
+                    'Berikut invoice No. #' + orderNo + '\n' +
+                    'Tanggal: {{ \Carbon\Carbon::parse($produksi->tanggal)->translatedFormat('d F Y') }}\n\n' +
+                    'Sisa Tagihan: Rp {{ number_format($produksi->sisa_tagihan, 0, ',', '.') }}\n\n' +
+                    'Detail invoice:\n' +
+                    linkInvoice;
+
+                let encodedPesan = encodeURIComponent(pesan);
+                window.open('https://wa.me/' + no + '?text=' + encodedPesan, '_blank');
             }
         </script>
     @endpush

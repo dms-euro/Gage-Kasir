@@ -58,6 +58,47 @@ class Pelanggan extends Model
         return $this->hasMany(Piutang::class);
     }
 
+    // App/Models/Pelanggan.php
+
+    /**
+     * Get nomor WhatsApp lengkap dengan +62
+     */
+    public function getNoWaAttribute(): string
+    {
+        $no = $this->no_hp ?? $this->cp ?? '';
+
+        // Hapus karakter non-digit
+        $no = preg_replace('/[^0-9]/', '', $no);
+
+        // Jika dimulai dengan 0, ganti dengan 62
+        if (str_starts_with($no, '0')) {
+            $no = '62' . substr($no, 1);
+        }
+
+        // Jika dimulai dengan 62, sudah benar
+        if (str_starts_with($no, '62')) {
+            return '+' . $no;
+        }
+
+        // Jika dimulai dengan 8, tambahkan 62
+        return '+62' . $no;
+    }
+
+    /**
+     * Set nomor HP (simpan tanpa +62)
+     */
+    public function setNoHpAttribute($value)
+    {
+        $value = preg_replace('/[^0-9]/', '', $value);
+
+        // Jika dimulai dengan 62, buang depannya
+        if (str_starts_with($value, '62')) {
+            $value = '0' . substr($value, 2);
+        }
+
+        $this->attributes['no_hp'] = $value;
+    }
+
 
     // public function scopeActive($query)
     // {
