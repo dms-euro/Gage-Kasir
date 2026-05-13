@@ -30,6 +30,7 @@ Route::middleware('auth')->group(function () {
     Route::put('/pelanggan/{id}', [PelangganController::class, 'update'])->name('pelanggan.update');
     Route::get('/pelanggan/{id}/produksi', [PelangganController::class, 'produksi'])->name('pelanggan.produksi');
     Route::delete('/pelanggan/{id}', [PelangganController::class, 'destroy'])->name('pelanggan.destroy');
+    Route::post('/pelanggan/{id}/multi-tagihan', [PelangganController::class, 'multiTagihan'])->name('pelanggan.multi-tagihan');
     Route::get('/produksi/kategori', [ProduksiController::class, 'kategoriIndex'])->name('kategori.index');
     Route::post('/produksi/kategori', [ProduksiController::class, 'kategoriStore'])->name('kategori.store');
     Route::put('/produksi/kategori/{id}', [ProduksiController::class, 'kategoriUpdate'])->name('kategori.update');

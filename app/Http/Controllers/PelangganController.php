@@ -6,6 +6,7 @@ use App\Models\Pelanggan;
 use App\Models\Piutang;
 use App\Models\Produksi;
 use App\Models\JenisPelanggan;
+use App\Models\ProfilPerusahaan;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 
@@ -282,5 +283,57 @@ class PelangganController extends Controller
             ->get(['id', 'id_pelanggan', 'nama', 'cv']);
 
         return response()->json(['data' => $pelanggans]);
+    }
+
+        /**
+     * Multi Tagihan - Gabung beberapa invoice jadi satu
+     */
+    public function multiTagihan(Request $request, $pelangganId)
+    {
+        $request->validate([
+            'start_date' => 'required|date',
+            'end_date' => 'required|date|after_or_equal:start_date',
+        ]);
+
+        $pelanggan = Pelanggan::findOrFail($pelangganId);
+
+        // Ambil semua order UTANG dalam rentang tanggal
+        $produksis = Produksi::with(['detailProduksi.kategori', 'piutang'])
+            ->where('pelanggan_id', $pelangganId)
+            ->where('status', true)
+            ->where('keterangan', 'UTANG')
+            ->whereDate('tanggal', '>=', $request->start_date)
+            ->whereDate('tanggal', '<=', $request->end_date)
+            ->orderBy('tanggal', 'asc')
+            ->get();
+
+        if ($produksis->isEmpty()) {
+            return back()->with('error', 'Tidak ada order UTANG dalam rentang tanggal tersebut.');
+        }
+
+        $Profilperusahaan = ProfilPerusahaan::first();
+
+        // Hitung total gabungan
+        $totalTagihan = $produksis->sum('total_tagihan');
+        $totalDibayar = $produksis->sum('bayar');
+        $totalSisa = $produksis->sum('sisa_tagihan');
+        $totalBiayaDesign = $produksis->sum('biaya_design');
+        $totalDiskon = $produksis->sum('diskon');
+
+        // Generate kode tagihan gabungan
+        $kodeTagihan = 'MTG-' . date('ymd') . '-' . $pelanggan->id_pelanggan;
+
+        return view('pages.multi-tagihan', compact(
+            'pelanggan',
+            'produksis',
+            'Profilperusahaan',
+            'totalTagihan',
+            'totalDibayar',
+            'totalSisa',
+            'totalBiayaDesign',
+            'totalDiskon',
+            'kodeTagihan',
+            'request'
+        ));
     }
 }
